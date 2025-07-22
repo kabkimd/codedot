@@ -196,6 +196,23 @@ const isEditableFile = (fileName: string): boolean => {
   return textExtensions.includes(extension || '');
 };
 
+// Generate a deterministic UUID from username
+const generateUserUUID = (username: string): string => {
+  // Simple hash function to create consistent UUID
+  let hash = 0;
+  for (let i = 0; i < username.length; i++) {
+    const char = username.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  
+  // Convert to positive number and pad
+  const positiveHash = Math.abs(hash).toString(16).padStart(8, '0');
+  
+  // Format as UUID v4
+  return `${positiveHash.slice(0, 8)}-${positiveHash.slice(0, 4)}-4${positiveHash.slice(1, 4)}-8${positiveHash.slice(0, 3)}-${positiveHash.slice(0, 12)}`;
+};
+
 export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   const [fileSystem, setFileSystem] = useState<FileTreeNode[]>([]);
   const [selectedFile, setSelectedFile] = useState<string>('');
@@ -211,19 +228,24 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
     setSelectedFile(filePath);
     
     try {
+      const userUUID = generateUserUUID(username);
       const { data, error } = await supabase
         .from('files')
         .select('content')
         .eq('path', filePath)
-        .eq('user_id', `user_${username}`) // Convert username to a consistent format
-        .single();
+        .eq('user_id', userUUID)
+        .maybeSingle();
       
-      if (error || !data) {
+      if (error) {
+        console.log('File not found in DB, using mock content:', error);
+      }
+      
+      if (data?.content) {
+        setFileContent(data.content);
+      } else {
         // File doesn't exist in DB, use mock content
         const content = getMockFileContent(filePath);
         setFileContent(content);
-      } else {
-        setFileContent(data.content || '');
       }
     } catch (error) {
       console.error('Error fetching file:', error);
@@ -238,13 +260,14 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
     const fileName = selectedFile.split('/').pop() || '';
     
     try {
+      const userUUID = generateUserUUID(username);
       const { error } = await supabase
         .from('files')
         .upsert({
           path: selectedFile,
           name: fileName,
           content: content,
-          user_id: `user_${username}`, // Convert username to a consistent format
+          user_id: userUUID,
           file_type: fileName.split('.').pop()?.toLowerCase() || 'txt',
           size_bytes: new Blob([content]).size
         });
@@ -260,7 +283,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
         setFileContent(content);
         toast({
           title: "File saved",
-          description: `${fileName} saved to database`,
+          description: `${fileName} saved successfully`,
         });
       }
     } catch (error) {

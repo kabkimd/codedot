@@ -1,12 +1,12 @@
+
 import { useEffect, useState } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
 import { json } from '@codemirror/lang-json';
-import { oneDark } from '@codemirror/theme-one-dark';
-import { basicSetup } from 'codemirror';
 import { EditorView } from '@codemirror/view';
+import { Extension } from '@codemirror/state';
 import { Button } from '@/components/ui/button';
 import { Save, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -18,19 +18,22 @@ interface CodeEditorProps {
   readOnly?: boolean;
 }
 
-const getLanguageExtension = (fileName: string) => {
+const getLanguageExtension = (fileName: string): Extension[] => {
   const extension = fileName.split('.').pop()?.toLowerCase();
   
   switch (extension) {
     case 'js':
     case 'jsx':
+      return [javascript({ jsx: true })];
     case 'ts':
     case 'tsx':
-      return [javascript({ jsx: true, typescript: extension.includes('ts') })];
+      return [javascript({ jsx: true, typescript: true })];
     case 'html':
+    case 'htm':
       return [html()];
     case 'css':
     case 'scss':
+    case 'sass':
       return [css()];
     case 'json':
       return [json()];
@@ -70,8 +73,7 @@ export const CodeEditor = ({ content, fileName, onSave, readOnly = false }: Code
     URL.revokeObjectURL(url);
   };
 
-  const extensions = [
-    basicSetup,
+  const extensions: Extension[] = [
     ...getLanguageExtension(fileName),
     EditorView.theme({
       '&': {
@@ -87,7 +89,14 @@ export const CodeEditor = ({ content, fileName, onSave, readOnly = false }: Code
       '.cm-scroller': {
         fontFamily: 'JetBrains Mono, Consolas, Monaco, "Courier New", monospace',
       },
+      '.cm-content': {
+        padding: '12px',
+      },
+      '.cm-line': {
+        padding: '0 4px',
+      },
     }),
+    EditorView.lineWrapping,
   ];
 
   return (
@@ -129,6 +138,17 @@ export const CodeEditor = ({ content, fileName, onSave, readOnly = false }: Code
           extensions={extensions}
           readOnly={readOnly}
           height="100%"
+          basicSetup={{
+            lineNumbers: true,
+            foldGutter: true,
+            dropCursor: false,
+            allowMultipleSelections: false,
+            indentOnInput: true,
+            bracketMatching: true,
+            closeBrackets: true,
+            autocompletion: true,
+            highlightSelectionMatches: false,
+          }}
         />
       </div>
     </div>
