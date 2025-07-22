@@ -5,6 +5,7 @@ import { MediaPreview } from './MediaPreview';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FileManagerProps {
   username: string;
@@ -206,17 +207,70 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
     setFileSystem(createMockFileSystem(username));
   }, [username]);
 
-  const handleFileSelect = (filePath: string) => {
+  const handleFileSelect = async (filePath: string) => {
     setSelectedFile(filePath);
-    // In production, this would fetch from Supabase
-    const content = getMockFileContent(filePath);
-    setFileContent(content);
+    
+    try {
+      const { data, error } = await supabase
+        .from('files')
+        .select('content')
+        .eq('path', filePath)
+        .eq('user_id', username) // Using username as user_id for now
+        .single();
+      
+      if (error || !data) {
+        // File doesn't exist in DB, use mock content
+        const content = getMockFileContent(filePath);
+        setFileContent(content);
+      } else {
+        setFileContent(data.content || '');
+      }
+    } catch (error) {
+      console.error('Error fetching file:', error);
+      const content = getMockFileContent(filePath);
+      setFileContent(content);
+    }
   };
 
-  const handleFileSave = (content: string) => {
-    // In production, this would save to Supabase
-    setFileContent(content);
-    console.log(`Saving file ${selectedFile} with content:`, content);
+  const handleFileSave = async (content: string) => {
+    if (!selectedFile) return;
+    
+    const fileName = selectedFile.split('/').pop() || '';
+    
+    try {
+      const { error } = await supabase
+        .from('files')
+        .upsert({
+          path: selectedFile,
+          name: fileName,
+          content: content,
+          user_id: username, // Using username as user_id for now
+          file_type: fileName.split('.').pop()?.toLowerCase() || 'txt',
+          size_bytes: new Blob([content]).size
+        });
+      
+      if (error) {
+        console.error('Error saving file:', error);
+        toast({
+          title: "Error saving file",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        setFileContent(content);
+        toast({
+          title: "File saved",
+          description: `${fileName} saved to database`,
+        });
+      }
+    } catch (error) {
+      console.error('Error saving file:', error);
+      toast({
+        title: "Error saving file", 
+        description: "Failed to save to database",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleCreateFile = (parentPath: string, name: string) => {
@@ -267,7 +321,10 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
       <div className="h-12 flex items-center justify-between px-4 border-b border-border bg-muted/20">
-        <h1 className="text-lg font-medium">File Manager - {username}</h1>
+        <div className="flex items-center space-x-4">
+          <h1 className="text-lg font-medium">File Manager</h1>
+          <span className="text-sm text-muted-foreground">Hello, {username}</span>
+        </div>
         <Button variant="outline" size="sm" onClick={onLogout}>
           <LogOut size={14} className="mr-1" />
           Logout

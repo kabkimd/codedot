@@ -5,6 +5,7 @@ import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
 import { json } from '@codemirror/lang-json';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { basicSetup } from 'codemirror';
 import { EditorView } from '@codemirror/view';
 import { search } from '@codemirror/search';
 import { Button } from '@/components/ui/button';
@@ -71,6 +72,7 @@ export const CodeEditor = ({ content, fileName, onSave, readOnly = false }: Code
   };
 
   const extensions = [
+    basicSetup,
     ...getLanguageExtension(fileName),
     EditorView.theme({
       '&': {
@@ -87,7 +89,6 @@ export const CodeEditor = ({ content, fileName, onSave, readOnly = false }: Code
         fontFamily: 'JetBrains Mono, Consolas, Monaco, "Courier New", monospace',
       },
     }),
-    search(),
   ];
 
   return (
