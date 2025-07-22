@@ -128,7 +128,6 @@ export const CodeEditor = ({ content, fileName, onSave, readOnly = false }: Code
           }}
           extensions={extensions}
           readOnly={readOnly}
-          theme={oneDark}
           height="100%"
         />
       </div>

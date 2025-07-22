@@ -215,7 +215,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
         .from('files')
         .select('content')
         .eq('path', filePath)
-        .eq('user_id', username) // Using username as user_id for now
+        .eq('user_id', `user_${username}`) // Convert username to a consistent format
         .single();
       
       if (error || !data) {
@@ -244,7 +244,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
           path: selectedFile,
           name: fileName,
           content: content,
-          user_id: username, // Using username as user_id for now
+          user_id: `user_${username}`, // Convert username to a consistent format
           file_type: fileName.split('.').pop()?.toLowerCase() || 'txt',
           size_bytes: new Blob([content]).size
         });
