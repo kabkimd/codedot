@@ -7,7 +7,6 @@ import { json } from '@codemirror/lang-json';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { basicSetup } from 'codemirror';
 import { EditorView } from '@codemirror/view';
-import { search } from '@codemirror/search';
 import { Button } from '@/components/ui/button';
 import { Save, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -129,10 +128,8 @@ export const CodeEditor = ({ content, fileName, onSave, readOnly = false }: Code
           }}
           extensions={extensions}
           readOnly={readOnly}
-          style={{
-            height: '100%',
-            fontSize: '14px',
-          }}
+          theme={oneDark}
+          height="100%"
         />
       </div>
     </div>
