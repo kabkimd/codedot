@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { authAPI } from '@/lib/api';
 
 interface LoginFormProps {
   onLogin: (username: string) => void;
@@ -15,34 +16,23 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Mock users for development - in production this would be in Supabase
-  const mockUsers = {
-    'admin': 'password123',
-    'user1': 'pass1',
-    'user2': 'pass2',
-    'developer': 'devpass',
-    'tester': 'testpass'
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Check credentials against mock users
-    if (mockUsers[username as keyof typeof mockUsers] === password) {
+    try {
+      await authAPI.login(username, password);
       onLogin(username);
       toast({
-        title: "Login successful",
+        title: 'Login successful',
         description: `Welcome back, ${username}!`,
       });
-    } else {
+    } catch (err) {
       toast({
-        title: "Login failed",
-        description: "Invalid username or password",
-        variant: "destructive",
+        title: 'Login failed',
+        description: 'Invalid username or password',
+        variant: 'destructive',
       });
     }
 

@@ -165,7 +165,14 @@ export const FileTree = ({
                 </ContextMenuItem>
               </>
             )}
-            <ContextMenuItem>
+            <ContextMenuItem
+              onClick={() => {
+                const newName = prompt('Enter new name', node.name);
+                if (newName && newName !== node.name) {
+                  onRename(node.path, newName);
+                }
+              }}
+            >
               <Edit3 size={14} className="mr-2" />
               Rename
             </ContextMenuItem>
