@@ -32,9 +32,23 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
     const loadTree = async () => {
       try {
         const res = await fetch('/api/tree');
-        if (res.ok) {
-          const data = await res.json();
+        if (!res.ok) {
+          console.error(
+            'Server error while loading file tree:',
+            res.status,
+            res.statusText,
+          );
+          return;
+        }
+
+        const text = await res.text();
+        console.debug('raw tree response:', text);
+
+        try {
+          const data = JSON.parse(text);
           setFileSystem(data);
+        } catch (e) {
+          console.error('Failed to parse file tree JSON:', e);
         }
       } catch (err) {
         console.error('Failed to load file tree', err);
