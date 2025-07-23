@@ -5,7 +5,6 @@ import { MediaPreview } from './MediaPreview';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 interface FileManagerProps {
   username: string;
@@ -196,23 +195,6 @@ const isEditableFile = (fileName: string): boolean => {
   return textExtensions.includes(extension || '');
 };
 
-// Generate a deterministic UUID from username
-const generateUserUUID = (username: string): string => {
-  // Simple hash function to create consistent UUID
-  let hash = 0;
-  for (let i = 0; i < username.length; i++) {
-    const char = username.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  
-  // Convert to positive number and pad
-  const positiveHash = Math.abs(hash).toString(16).padStart(8, '0');
-  
-  // Format as UUID v4
-  return `${positiveHash.slice(0, 8)}-${positiveHash.slice(0, 4)}-4${positiveHash.slice(1, 4)}-8${positiveHash.slice(0, 3)}-${positiveHash.slice(0, 12)}`;
-};
-
 export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   const [fileSystem, setFileSystem] = useState<FileTreeNode[]>([]);
   const [selectedFile, setSelectedFile] = useState<string>('');
@@ -224,76 +206,17 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
     setFileSystem(createMockFileSystem(username));
   }, [username]);
 
-  const handleFileSelect = async (filePath: string) => {
+  const handleFileSelect = (filePath: string) => {
     setSelectedFile(filePath);
-    
-    try {
-      const userUUID = generateUserUUID(username);
-      const { data, error } = await supabase
-        .from('files')
-        .select('content')
-        .eq('path', filePath)
-        .eq('user_id', userUUID)
-        .maybeSingle();
-      
-      if (error) {
-        console.log('File not found in DB, using mock content:', error);
-      }
-      
-      if (data?.content) {
-        setFileContent(data.content);
-      } else {
-        // File doesn't exist in DB, use mock content
-        const content = getMockFileContent(filePath);
-        setFileContent(content);
-      }
-    } catch (error) {
-      console.error('Error fetching file:', error);
-      const content = getMockFileContent(filePath);
-      setFileContent(content);
-    }
+    // In production, this would fetch from Supabase
+    const content = getMockFileContent(filePath);
+    setFileContent(content);
   };
 
-  const handleFileSave = async (content: string) => {
-    if (!selectedFile) return;
-    
-    const fileName = selectedFile.split('/').pop() || '';
-    
-    try {
-      const userUUID = generateUserUUID(username);
-      const { error } = await supabase
-        .from('files')
-        .upsert({
-          path: selectedFile,
-          name: fileName,
-          content: content,
-          user_id: userUUID,
-          file_type: fileName.split('.').pop()?.toLowerCase() || 'txt',
-          size_bytes: new Blob([content]).size
-        });
-      
-      if (error) {
-        console.error('Error saving file:', error);
-        toast({
-          title: "Error saving file",
-          description: error.message,
-          variant: "destructive"
-        });
-      } else {
-        setFileContent(content);
-        toast({
-          title: "File saved",
-          description: `${fileName} saved successfully`,
-        });
-      }
-    } catch (error) {
-      console.error('Error saving file:', error);
-      toast({
-        title: "Error saving file", 
-        description: "Failed to save to database",
-        variant: "destructive"
-      });
-    }
+  const handleFileSave = (content: string) => {
+    // In production, this would save to Supabase
+    setFileContent(content);
+    console.log(`Saving file ${selectedFile} with content:`, content);
   };
 
   const handleCreateFile = (parentPath: string, name: string) => {
@@ -344,10 +267,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
       <div className="h-12 flex items-center justify-between px-4 border-b border-border bg-muted/20">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-lg font-medium">File Manager</h1>
-          <span className="text-sm text-muted-foreground">Hello, {username}</span>
-        </div>
+        <h1 className="text-lg font-medium">File Manager - {username}</h1>
         <Button variant="outline" size="sm" onClick={onLogout}>
           <LogOut size={14} className="mr-1" />
           Logout
