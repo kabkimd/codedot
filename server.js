@@ -5,7 +5,9 @@ import fs from 'fs/promises';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const BASE_DIR = '/users/leo';
+// Resolve the users directory relative to the project root so the API
+// works regardless of the current working directory.
+const BASE_DIR = path.resolve(process.cwd(), 'users', 'leo');
 
 app.use(cors());
 
