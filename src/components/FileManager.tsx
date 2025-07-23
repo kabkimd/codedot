@@ -11,179 +11,6 @@ interface FileManagerProps {
   onLogout: () => void;
 }
 
-// Mock file system - in production this would come from Supabase
-const createMockFileSystem = (username: string): FileTreeNode[] => {
-  return [
-    {
-      name: username,
-      path: `/${username}`,
-      isDirectory: true,
-      children: [
-        {
-          name: 'projects',
-          path: `/${username}/projects`,
-          isDirectory: true,
-          children: [
-            {
-              name: 'web-app',
-              path: `/${username}/projects/web-app`,
-              isDirectory: true,
-              children: [
-                {
-                  name: 'index.html',
-                  path: `/${username}/projects/web-app/index.html`,
-                  isDirectory: false,
-                },
-                {
-                  name: 'style.css',
-                  path: `/${username}/projects/web-app/style.css`,
-                  isDirectory: false,
-                },
-                {
-                  name: 'script.js',
-                  path: `/${username}/projects/web-app/script.js`,
-                  isDirectory: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'documents',
-          path: `/${username}/documents`,
-          isDirectory: true,
-          children: [
-            {
-              name: 'readme.txt',
-              path: `/${username}/documents/readme.txt`,
-              isDirectory: false,
-            },
-            {
-              name: 'config.json',
-              path: `/${username}/documents/config.json`,
-              isDirectory: false,
-            },
-          ],
-        },
-        {
-          name: 'media',
-          path: `/${username}/media`,
-          isDirectory: true,
-          children: [
-            {
-              name: 'sample.jpg',
-              path: `/${username}/media/sample.jpg`,
-              isDirectory: false,
-            },
-          ],
-        },
-      ],
-    },
-  ];
-};
-
-const getMockFileContent = (filePath: string): string => {
-  const fileName = filePath.split('/').pop() || '';
-  
-  switch (fileName) {
-    case 'index.html':
-      return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Web App</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <h1>Welcome to My Web App</h1>
-    <p>This is a sample HTML file.</p>
-    <script src="script.js"></script>
-</body>
-</html>`;
-
-    case 'style.css':
-      return `body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background-color: #f5f5f5;
-}
-
-h1 {
-    color: #333;
-    text-align: center;
-}
-
-p {
-    color: #666;
-    line-height: 1.6;
-}`;
-
-    case 'script.js':
-      return `// Sample JavaScript file
-console.log('Hello, World!');
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Page loaded successfully');
-    
-    // Add some interactivity
-    const heading = document.querySelector('h1');
-    if (heading) {
-        heading.addEventListener('click', function() {
-            this.style.color = this.style.color === 'red' ? '#333' : 'red';
-        });
-    }
-});`;
-
-    case 'readme.txt':
-      return `# User Documentation
-
-Welcome to your personal file manager!
-
-## Features:
-- Browse and edit files
-- Create new files and folders
-- Upload files
-- Syntax highlighting for code files
-- Media preview for images, videos, and audio
-
-## Getting Started:
-1. Navigate through folders using the file tree
-2. Click on files to edit them
-3. Right-click for context menu options
-4. Use Ctrl+S to save files
-
-Happy coding!`;
-
-    case 'config.json':
-      return `{
-  "app": {
-    "name": "File Manager",
-    "version": "1.0.0",
-    "theme": "minimal"
-  },
-  "editor": {
-    "fontSize": 14,
-    "tabSize": 2,
-    "wordWrap": true,
-    "syntaxHighlighting": true
-  },
-  "user": {
-    "preferences": {
-      "autoSave": true,
-      "showLineNumbers": true,
-      "darkMode": false
-    }
-  }
-}`;
-
-    default:
-      return `// ${fileName}
-// This is a sample file
-console.log('Edit this file to get started!');`;
-  }
-};
 
 const isEditableFile = (fileName: string): boolean => {
   const extension = fileName.split('.').pop()?.toLowerCase();
@@ -202,15 +29,34 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Initialize file system for user
-    setFileSystem(createMockFileSystem(username));
-  }, [username]);
+    const loadTree = async () => {
+      try {
+        const res = await fetch('/api/tree');
+        if (res.ok) {
+          const data = await res.json();
+          setFileSystem(data);
+        }
+      } catch (err) {
+        console.error('Failed to load file tree', err);
+      }
+    };
+    loadTree();
+  }, []);
 
-  const handleFileSelect = (filePath: string) => {
+  const handleFileSelect = async (filePath: string) => {
     setSelectedFile(filePath);
-    // In production, this would fetch from Supabase
-    const content = getMockFileContent(filePath);
-    setFileContent(content);
+    try {
+      const res = await fetch(`/api/file?path=${encodeURIComponent(filePath)}`);
+      if (res.ok) {
+        const text = await res.text();
+        setFileContent(text);
+      } else {
+        setFileContent('');
+      }
+    } catch (err) {
+      console.error('Failed to load file', err);
+      setFileContent('');
+    }
   };
 
   const handleFileSave = (content: string) => {
