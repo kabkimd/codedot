@@ -205,6 +205,9 @@ app.delete('/api/file', authMiddleware, async (req, res) => {
   if (!normalized.startsWith(BASE_DIR)) {
     return res.status(400).json({ error: 'invalid path' });
   }
+  if (normalized === BASE_DIR) {
+    return res.status(400).json({ error: 'cannot delete root folder' });
+  }
   try {
     await fs.rm(normalized, { recursive: true, force: true });
     res.json({ ok: true });
