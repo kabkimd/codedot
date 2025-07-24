@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { FileIcon } from './FileIcon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -71,6 +71,13 @@ export const FileTree = ({
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const uploadParentPathRef = useRef<string | null>(null);
   const [draggedPath, setDraggedPath] = useState<string | null>(null);
+
+  // Expand the root folder by default when the tree loads
+  useEffect(() => {
+    if (nodes.length > 0 && expandedNodes.size === 0) {
+      setExpandedNodes(new Set([nodes[0].path]));
+    }
+  }, [nodes]);
 
   const toggleExpanded = (path: string) => {
     const newExpanded = new Set(expandedNodes);
