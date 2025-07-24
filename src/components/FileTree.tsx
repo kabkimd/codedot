@@ -8,13 +8,22 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
-import { 
+import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 import { 
   ChevronRight, 
   ChevronDown, 
@@ -71,6 +80,9 @@ export const FileTree = ({
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const uploadParentPathRef = useRef<string | null>(null);
   const [draggedPath, setDraggedPath] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ path: string; name: string } | null>(null);
+
+  const rootPath = nodes[0]?.path;
 
   // Expand the root folder by default when the tree loads
   useEffect(() => {
@@ -218,13 +230,15 @@ export const FileTree = ({
               <Edit3 size={14} className="mr-2" />
               Rename
             </ContextMenuItem>
-            <ContextMenuItem
-              className="text-destructive"
-              onClick={() => onDelete(node.path)}
-            >
-              <Trash2 size={14} className="mr-2" />
-              Delete
-            </ContextMenuItem>
+            {node.path !== rootPath && (
+              <ContextMenuItem
+                className="text-destructive"
+                onClick={() => setDeleteTarget({ path: node.path, name: node.name })}
+              >
+                <Trash2 size={14} className="mr-2" />
+                Delete
+              </ContextMenuItem>
+            )}
             {!node.isDirectory && (
               <ContextMenuItem onClick={() => onDownload(node.path, node.name, false)}>
                 <Download size={14} className="mr-2" />
@@ -291,6 +305,29 @@ export const FileTree = ({
         className="hidden"
         onChange={handleFileUpload}
       />
+      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete {deleteTarget?.name}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete {deleteTarget?.name}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="destructive" onClick={() => {
+              if (deleteTarget) {
+                onDelete(deleteTarget.path);
+                setDeleteTarget(null);
+              }
+            }}>
+              Delete
+            </Button>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
