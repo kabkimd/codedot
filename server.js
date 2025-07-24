@@ -31,6 +31,11 @@ function userDir(username) {
   return path.resolve(process.cwd(), 'users', username);
 }
 
+function isPathInside(base, target) {
+  const relative = path.relative(base, target);
+  return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
+}
+
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body || {};
   const user = getUser(username);
@@ -107,7 +112,7 @@ app.get('/api/file', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: 'path query parameter required' });
   }
   const normalized = path.resolve(filePath);
-  if (!normalized.startsWith(BASE_DIR)) {
+  if (!isPathInside(BASE_DIR, normalized)) {
     return res.status(400).json({ error: 'invalid path' });
   }
   try {
@@ -125,7 +130,7 @@ app.put('/api/file', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: 'path required' });
   }
   const normalized = path.resolve(filePath);
-  if (!normalized.startsWith(BASE_DIR)) {
+  if (!isPathInside(BASE_DIR, normalized)) {
     return res.status(400).json({ error: 'invalid path' });
   }
   try {
@@ -143,7 +148,7 @@ app.post('/api/file', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: 'parent and name required' });
   }
   const parentPath = path.resolve(parent);
-  if (!parentPath.startsWith(BASE_DIR)) {
+  if (!isPathInside(BASE_DIR, parentPath)) {
     return res.status(400).json({ error: 'invalid path' });
   }
   const newPath = path.join(parentPath, name);
@@ -166,7 +171,7 @@ app.delete('/api/file', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: 'path query parameter required' });
   }
   const normalized = path.resolve(filePath);
-  if (!normalized.startsWith(BASE_DIR)) {
+  if (!isPathInside(BASE_DIR, normalized)) {
     return res.status(400).json({ error: 'invalid path' });
   }
   try {
@@ -184,7 +189,7 @@ app.patch('/api/file', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: 'path and newName required' });
   }
   const normalized = path.resolve(filePath);
-  if (!normalized.startsWith(BASE_DIR)) {
+  if (!isPathInside(BASE_DIR, normalized)) {
     return res.status(400).json({ error: 'invalid path' });
   }
   const newPath = path.join(path.dirname(normalized), newName);
@@ -204,7 +209,7 @@ app.post('/api/move', authMiddleware, async (req, res) => {
   }
   const sourcePath = path.resolve(filePath);
   const targetDir = path.resolve(target);
-  if (!sourcePath.startsWith(BASE_DIR) || !targetDir.startsWith(BASE_DIR)) {
+  if (!isPathInside(BASE_DIR, sourcePath) || !isPathInside(BASE_DIR, targetDir)) {
     return res.status(400).json({ error: 'invalid path' });
   }
   const newPath = path.join(targetDir, path.basename(sourcePath));
@@ -223,7 +228,7 @@ app.post('/api/upload', authMiddleware, upload.array('files'), async (req, res) 
     return res.status(400).json({ error: 'parent required' });
   }
   const parentPath = path.resolve(parent);
-  if (!parentPath.startsWith(BASE_DIR)) {
+  if (!isPathInside(BASE_DIR, parentPath)) {
     return res.status(400).json({ error: 'invalid path' });
   }
   try {
