@@ -12,7 +12,8 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
-import { LogOut } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { fileAPI } from '@/lib/api';
 
@@ -223,10 +224,18 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
       {/* Header */}
       <div className="h-12 flex items-center justify-between px-4 border-b border-border bg-muted/20">
         <h1 className="text-lg font-medium">File Manager - {username}</h1>
-        <Button variant="outline" size="sm" onClick={onLogout}>
-          <LogOut size={14} className="mr-1" />
-          Logout
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/profile">
+              <User size={14} className="mr-1" />
+              Profile
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" onClick={onLogout}>
+            <LogOut size={14} className="mr-1" />
+            Logout
+          </Button>
+        </div>
       </div>
 
       {/* Main content */}
