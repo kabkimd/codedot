@@ -116,6 +116,84 @@ app.get('/api/file', authMiddleware, async (req, res) => {
   }
 });
 
+app.put('/api/file', authMiddleware, async (req, res) => {
+  const BASE_DIR = userDir(req.user);
+  const { path: filePath, content } = req.body || {};
+  if (!filePath) {
+    return res.status(400).json({ error: 'path required' });
+  }
+  const normalized = path.resolve(filePath);
+  if (!normalized.startsWith(BASE_DIR)) {
+    return res.status(400).json({ error: 'invalid path' });
+  }
+  try {
+    await fs.writeFile(normalized, content ?? '', 'utf8');
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/file', authMiddleware, async (req, res) => {
+  const BASE_DIR = userDir(req.user);
+  const { parent, name, isDirectory } = req.body || {};
+  if (!parent || !name) {
+    return res.status(400).json({ error: 'parent and name required' });
+  }
+  const parentPath = path.resolve(parent);
+  if (!parentPath.startsWith(BASE_DIR)) {
+    return res.status(400).json({ error: 'invalid path' });
+  }
+  const newPath = path.join(parentPath, name);
+  try {
+    if (isDirectory) {
+      await fs.mkdir(newPath, { recursive: true });
+    } else {
+      await fs.writeFile(newPath, '', { flag: 'wx' });
+    }
+    res.json({ ok: true, path: newPath });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/file', authMiddleware, async (req, res) => {
+  const BASE_DIR = userDir(req.user);
+  const filePath = req.query.path;
+  if (typeof filePath !== 'string') {
+    return res.status(400).json({ error: 'path query parameter required' });
+  }
+  const normalized = path.resolve(filePath);
+  if (!normalized.startsWith(BASE_DIR)) {
+    return res.status(400).json({ error: 'invalid path' });
+  }
+  try {
+    await fs.rm(normalized, { recursive: true, force: true });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch('/api/file', authMiddleware, async (req, res) => {
+  const BASE_DIR = userDir(req.user);
+  const { path: filePath, newName } = req.body || {};
+  if (!filePath || !newName) {
+    return res.status(400).json({ error: 'path and newName required' });
+  }
+  const normalized = path.resolve(filePath);
+  if (!normalized.startsWith(BASE_DIR)) {
+    return res.status(400).json({ error: 'invalid path' });
+  }
+  const newPath = path.join(path.dirname(normalized), newName);
+  try {
+    await fs.rename(normalized, newPath);
+    res.json({ ok: true, path: newPath });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
 });
