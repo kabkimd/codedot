@@ -4,6 +4,7 @@ import { CodeEditor } from './CodeEditor';
 import { MediaPreview } from './MediaPreview';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { fileAPI } from '@/lib/api';
 
@@ -27,6 +28,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   const [fileSystem, setFileSystem] = useState<FileTreeNode[]>([]);
   const [selectedFile, setSelectedFile] = useState<string>('');
   const [fileContent, setFileContent] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [unsavedFiles, setUnsavedFiles] = useState<Map<string, string>>(new Map());
   const { toast } = useToast();
 
@@ -56,14 +58,18 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
     const unsaved = unsavedFiles.get(filePath);
     if (unsaved !== undefined) {
       setFileContent(unsaved);
-    } else {
-      try {
-        const text = await fileAPI.getFile(filePath);
-        setFileContent(text);
-      } catch (err) {
-        console.error('Failed to load file', err);
-        setFileContent('');
-      }
+      return;
+    }
+    setIsLoading(true);
+    setFileContent('');
+    try {
+      const text = await fileAPI.getFile(filePath);
+      setFileContent(text);
+    } catch (err) {
+      console.error('Failed to load file', err);
+      setFileContent('');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -202,7 +208,12 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
         </div>
 
         {/* Editor/Preview area */}
-        <div className="flex-1 min-w-0">
+        <div className="relative flex-1 min-w-0">
+          {isLoading && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/75">
+              <Spinner className="h-6 w-6" />
+            </div>
+          )}
           {selectedFile ? (
             isEditable ? (
               <CodeEditor
@@ -213,6 +224,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
                   handleEditorChange(selectedFile, val, dirty)
                 }
                 initialDirty={fileIsDirty}
+                readOnly={isLoading}
               />
             ) : (
               <MediaPreview
