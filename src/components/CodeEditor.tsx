@@ -40,7 +40,13 @@ const getLanguageExtension = (fileName: string) => {
   }
 };
 
-export const CodeEditor = ({ content, fileName, onSave, readOnly = false }: CodeEditorProps) => {
+export const CodeEditor = ({
+  content,
+  fileName,
+  onSave,
+  onChange,
+  readOnly = false,
+}: CodeEditorProps) => {
   const [value, setValue] = useState(content);
   const [isDirty, setIsDirty] = useState(false);
   const { toast } = useToast();
