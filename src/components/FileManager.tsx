@@ -182,6 +182,22 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
       .catch((err) => console.error('Failed to move item', err));
   };
 
+  const handleDownload = (path: string, name: string, isDir: boolean) => {
+    fileAPI
+      .downloadItem(path)
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = isDir ? `${name}.zip` : name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      })
+      .catch((err) => console.error('Failed to download', err));
+  };
+
   const handleSaveAndContinue = () => {
     if (!pendingFileRef.current) return;
     handleFileSave(currentContent);
@@ -227,6 +243,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
             onDelete={handleDelete}
             onUpload={handleUpload}
             onMove={handleMove}
+            onDownload={handleDownload}
             selectedFile={selectedFile}
           />
         </div>

@@ -19,10 +19,11 @@ import {
   ChevronRight, 
   ChevronDown, 
   Plus, 
-  FolderPlus, 
+  FolderPlus,
   Upload,
   Trash2,
-  Edit3
+  Edit3,
+  Download
 } from 'lucide-react';
 
 export interface FileTreeNode {
@@ -44,6 +45,7 @@ interface FileTreeProps {
   onDelete: (path: string) => void;
   onUpload: (parentPath: string, files: FileList) => void;
   onMove: (path: string, target: string) => void;
+  onDownload: (path: string, name: string, isDirectory: boolean) => void;
   selectedFile?: string;
 }
 
@@ -57,6 +59,7 @@ export const FileTree = ({
   onDelete,
   onUpload,
   onMove,
+  onDownload,
   selectedFile
 }: FileTreeProps) => {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
@@ -189,6 +192,12 @@ export const FileTree = ({
                   <Upload size={14} className="mr-2" />
                   Upload Files
                 </ContextMenuItem>
+                <ContextMenuItem
+                  onClick={() => onDownload(node.path, node.name, true)}
+                >
+                  <Download size={14} className="mr-2" />
+                  Download Folder
+                </ContextMenuItem>
               </>
             )}
             <ContextMenuItem
@@ -209,6 +218,12 @@ export const FileTree = ({
               <Trash2 size={14} className="mr-2" />
               Delete
             </ContextMenuItem>
+            {!node.isDirectory && (
+              <ContextMenuItem onClick={() => onDownload(node.path, node.name, false)}>
+                <Download size={14} className="mr-2" />
+                Download File
+              </ContextMenuItem>
+            )}
           </ContextMenuContent>
         </ContextMenu>
 
