@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { FileIcon } from './FileIcon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,6 +61,8 @@ export const FileTree = ({
     parentPath: string;
   } | null>(null);
   const [newItemName, setNewItemName] = useState('');
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+  const uploadParentPathRef = useRef<string | null>(null);
 
   const toggleExpanded = (path: string) => {
     const newExpanded = new Set(expandedNodes);
@@ -85,11 +87,16 @@ export const FileTree = ({
     setNewItemName('');
   };
 
-  const handleFileUpload = (parentPath: string, event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files && files.length > 0) {
+  const handleFileUpload = () => {
+    const parentPath = uploadParentPathRef.current;
+    const files = uploadInputRef.current?.files || null;
+    if (parentPath && files && files.length > 0) {
       onUpload(parentPath, files);
     }
+    if (uploadInputRef.current) {
+      uploadInputRef.current.value = '';
+    }
+    uploadParentPathRef.current = null;
   };
 
   const renderNode = (node: FileTreeNode, level = 0) => {
@@ -151,17 +158,14 @@ export const FileTree = ({
                   <FolderPlus size={14} className="mr-2" />
                   New Folder
                 </ContextMenuItem>
-                <ContextMenuItem>
-                  <label className="flex items-center cursor-pointer">
-                    <Upload size={14} className="mr-2" />
-                    Upload Files
-                    <input
-                      type="file"
-                      multiple
-                      className="hidden"
-                      onChange={(e) => handleFileUpload(node.path, e)}
-                    />
-                  </label>
+                <ContextMenuItem
+                  onClick={() => {
+                    uploadParentPathRef.current = node.path;
+                    uploadInputRef.current?.click();
+                  }}
+                >
+                  <Upload size={14} className="mr-2" />
+                  Upload Files
                 </ContextMenuItem>
               </>
             )}
@@ -227,6 +231,13 @@ export const FileTree = ({
           </div>
         </DialogContent>
       </Dialog>
+      <input
+        type="file"
+        ref={uploadInputRef}
+        multiple
+        className="hidden"
+        onChange={handleFileUpload}
+      />
     </div>
   );
 };
