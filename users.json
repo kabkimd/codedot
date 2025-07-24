@@ -1,0 +1,12 @@
+[
+  {"username": "user1", "password": "$2b$10$k.KMw3zn5QaNrc31O6tsx.pSWfzg0pDrZMiRomxHHnbZs6n/VUwVy", "dir": "users/user1"},
+  {"username": "user2", "password": "$2b$10$k.KMw3zn5QaNrc31O6tsx.pSWfzg0pDrZMiRomxHHnbZs6n/VUwVy", "dir": "users/user2"},
+  {"username": "user3", "password": "$2b$10$k.KMw3zn5QaNrc31O6tsx.pSWfzg0pDrZMiRomxHHnbZs6n/VUwVy", "dir": "users/user3"},
+  {"username": "user4", "password": "$2b$10$k.KMw3zn5QaNrc31O6tsx.pSWfzg0pDrZMiRomxHHnbZs6n/VUwVy", "dir": "users/user4"},
+  {"username": "user5", "password": "$2b$10$k.KMw3zn5QaNrc31O6tsx.pSWfzg0pDrZMiRomxHHnbZs6n/VUwVy", "dir": "users/user5"},
+  {"username": "user6", "password": "$2b$10$k.KMw3zn5QaNrc31O6tsx.pSWfzg0pDrZMiRomxHHnbZs6n/VUwVy", "dir": "users/user6"},
+  {"username": "user7", "password": "$2b$10$k.KMw3zn5QaNrc31O6tsx.pSWfzg0pDrZMiRomxHHnbZs6n/VUwVy", "dir": "users/user7"},
+  {"username": "user8", "password": "$2b$10$k.KMw3zn5QaNrc31O6tsx.pSWfzg0pDrZMiRomxHHnbZs6n/VUwVy", "dir": "users/user8"},
+  {"username": "user9", "password": "$2b$10$k.KMw3zn5QaNrc31O6tsx.pSWfzg0pDrZMiRomxHHnbZs6n/VUwVy", "dir": "users/user9"},
+  {"username": "user10", "password": "$2b$10$k.KMw3zn5QaNrc31O6tsx.pSWfzg0pDrZMiRomxHHnbZs6n/VUwVy", "dir": "users/user10"}
+]
