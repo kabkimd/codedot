@@ -31,6 +31,21 @@ function userDir(username) {
   return path.resolve(process.cwd(), 'users', username);
 }
 
+const MAX_BYTES = 250 * 1024 * 1024; // 250MB per user
+
+async function getDirectorySize(dir) {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  const sizes = await Promise.all(entries.map(async (entry) => {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      return await getDirectorySize(fullPath);
+    }
+    const stat = await fs.stat(fullPath);
+    return stat.size;
+  }));
+  return sizes.reduce((a, b) => a + b, 0);
+}
+
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body || {};
   const user = getUser(username);
@@ -100,6 +115,16 @@ app.get('/api/tree', authMiddleware, async (req, res) => {
   }
 });
 
+app.get('/api/usage', authMiddleware, async (req, res) => {
+  const BASE_DIR = userDir(req.user);
+  try {
+    const used = await getDirectorySize(BASE_DIR);
+    res.json({ used, max: MAX_BYTES });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/file', authMiddleware, async (req, res) => {
   const BASE_DIR = userDir(req.user);
   const filePath = req.query.path;
@@ -129,6 +154,16 @@ app.put('/api/file', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: 'invalid path' });
   }
   try {
+    const currentSize = await getDirectorySize(BASE_DIR);
+    let prev = 0;
+    try {
+      const stat = await fs.stat(normalized);
+      prev = stat.size;
+    } catch {}
+    const newSize = Buffer.byteLength(content ?? '', 'utf8');
+    if (currentSize - prev + newSize > MAX_BYTES) {
+      return res.status(400).json({ error: 'Storage limit exceeded' });
+    }
     await fs.writeFile(normalized, content ?? '', 'utf8');
     res.json({ ok: true });
   } catch (err) {
@@ -227,13 +262,14 @@ app.post('/api/upload', authMiddleware, upload.array('files'), async (req, res) 
     return res.status(400).json({ error: 'invalid path' });
   }
   try {
-    const files = req.files || [];
+    const files = Array.isArray(req.files) ? req.files : [];
+    const currentSize = await getDirectorySize(BASE_DIR);
+    const added = files.reduce((t, f) => t + f.size, 0);
+    if (currentSize + added > MAX_BYTES) {
+      return res.status(400).json({ error: 'Storage limit exceeded' });
+    }
     await Promise.all(
-      Array.isArray(files)
-        ? files.map((f) =>
-            fs.writeFile(path.join(parentPath, f.originalname), f.buffer)
-          )
-        : []
+      files.map((f) => fs.writeFile(path.join(parentPath, f.originalname), f.buffer))
     );
     res.json({ ok: true });
   } catch (err) {

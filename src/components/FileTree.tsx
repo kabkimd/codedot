@@ -36,6 +36,7 @@ export interface FileTreeNode {
 
 interface FileTreeProps {
   nodes: FileTreeNode[];
+  usage: { used: number; max: number };
   onFileSelect: (path: string) => void;
   onCreateFile: (parentPath: string, name: string) => void;
   onCreateFolder: (parentPath: string, name: string) => void;
@@ -48,6 +49,7 @@ interface FileTreeProps {
 
 export const FileTree = ({
   nodes,
+  usage,
   onFileSelect,
   onCreateFile,
   onCreateFolder,
@@ -219,13 +221,22 @@ export const FileTree = ({
     );
   };
 
+  const formatMB = (b: number) => (b / (1024 * 1024)).toFixed(1);
+
   return (
-    <div className="h-full border-r border-border bg-background">
+    <div className="h-full flex flex-col border-r border-border bg-background">
       <div className="p-2 border-b border-border">
         <h3 className="text-sm font-medium">Files</h3>
       </div>
-      <div className="overflow-y-auto h-full">
+      <div className="flex-1 overflow-y-auto">
         {nodes.map((node) => renderNode(node))}
+      </div>
+      <div className="border-t border-border p-2">
+        <progress className="w-full h-2" value={usage.used} max={usage.max} />
+        <div className="text-xs text-center mt-1">
+          {formatMB(usage.used)} MB / {formatMB(usage.max)} MB (
+          {Math.round((usage.used / usage.max) * 100)}%)
+        </div>
       </div>
 
       <Dialog open={!!showCreateDialog} onOpenChange={() => setShowCreateDialog(null)}>
