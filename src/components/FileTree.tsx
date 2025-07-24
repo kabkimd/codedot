@@ -219,17 +219,19 @@ export const FileTree = ({
                 </ContextMenuItem>
               </>
             )}
-            <ContextMenuItem
-              onClick={() => {
-                const newName = prompt('Enter new name', node.name);
-                if (newName && newName.trim() && newName !== node.name) {
-                  onRename(node.path, newName.trim());
-                }
-              }}
-            >
-              <Edit3 size={14} className="mr-2" />
-              Rename
-            </ContextMenuItem>
+            {node.path !== rootPath && (
+              <ContextMenuItem
+                onClick={() => {
+                  const newName = prompt('Enter new name', node.name);
+                  if (newName && newName.trim() && newName !== node.name) {
+                    onRename(node.path, newName.trim());
+                  }
+                }}
+              >
+                <Edit3 size={14} className="mr-2" />
+                Rename
+              </ContextMenuItem>
+            )}
             {node.path !== rootPath && (
               <ContextMenuItem
                 className="text-destructive"
