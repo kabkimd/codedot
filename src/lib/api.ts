@@ -29,5 +29,61 @@ export const fileAPI = {
     });
     if (!res.ok) throw new Error('Failed to load file');
     return res.text();
+  },
+  saveFile: async (path: string, content: string) => {
+    const res = await fetch(`${API_BASE}/file`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ path, content })
+    });
+    if (!res.ok) throw new Error('Failed to save file');
+    return res.json();
+  },
+  createFile: async (parent: string, name: string) => {
+    const res = await fetch(`${API_BASE}/file`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ parent, name, isDirectory: false })
+    });
+    if (!res.ok) throw new Error('Failed to create file');
+    return res.json();
+  },
+  createFolder: async (parent: string, name: string) => {
+    const res = await fetch(`${API_BASE}/file`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ parent, name, isDirectory: true })
+    });
+    if (!res.ok) throw new Error('Failed to create folder');
+    return res.json();
+  },
+  deleteItem: async (path: string) => {
+    const res = await fetch(`${API_BASE}/file?path=${encodeURIComponent(path)}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Failed to delete');
+    return res.json();
+  },
+  renameItem: async (path: string, newName: string) => {
+    const res = await fetch(`${API_BASE}/file`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ path, newName })
+    });
+    if (!res.ok) throw new Error('Failed to rename');
+    return res.json();
   }
 };
