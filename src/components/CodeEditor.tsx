@@ -15,6 +15,7 @@ interface CodeEditorProps {
   content: string;
   fileName: string;
   onSave: (content: string) => void;
+  onChange?: (content: string, dirty: boolean) => void;
   readOnly?: boolean;
 }
 
@@ -52,6 +53,7 @@ export const CodeEditor = ({ content, fileName, onSave, readOnly = false }: Code
   const handleSave = () => {
     onSave(value);
     setIsDirty(false);
+    onChange && onChange(value, false);
     toast({
       title: "File saved",
       description: `${fileName} has been saved successfully.`,
@@ -124,7 +126,9 @@ export const CodeEditor = ({ content, fileName, onSave, readOnly = false }: Code
           value={value}
           onChange={(val) => {
             setValue(val);
-            setIsDirty(val !== content);
+            const dirty = val !== content;
+            setIsDirty(dirty);
+            onChange && onChange(val, dirty);
           }}
           extensions={extensions}
           readOnly={readOnly}
