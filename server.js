@@ -196,6 +196,26 @@ app.patch('/api/file', authMiddleware, async (req, res) => {
   }
 });
 
+app.post('/api/move', authMiddleware, async (req, res) => {
+  const BASE_DIR = userDir(req.user);
+  const { path: filePath, target } = req.body || {};
+  if (!filePath || !target) {
+    return res.status(400).json({ error: 'path and target required' });
+  }
+  const sourcePath = path.resolve(filePath);
+  const targetDir = path.resolve(target);
+  if (!sourcePath.startsWith(BASE_DIR) || !targetDir.startsWith(BASE_DIR)) {
+    return res.status(400).json({ error: 'invalid path' });
+  }
+  const newPath = path.join(targetDir, path.basename(sourcePath));
+  try {
+    await fs.rename(sourcePath, newPath);
+    res.json({ ok: true, path: newPath });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/upload', authMiddleware, upload.array('files'), async (req, res) => {
   const BASE_DIR = userDir(req.user);
   const parent = req.body.parent;

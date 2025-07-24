@@ -42,6 +42,7 @@ interface FileTreeProps {
   onRename: (path: string, newName: string) => void;
   onDelete: (path: string) => void;
   onUpload: (parentPath: string, files: FileList) => void;
+  onMove: (path: string, target: string) => void;
   selectedFile?: string;
 }
 
@@ -53,6 +54,7 @@ export const FileTree = ({
   onRename,
   onDelete,
   onUpload,
+  onMove,
   selectedFile
 }: FileTreeProps) => {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
@@ -63,6 +65,7 @@ export const FileTree = ({
   const [newItemName, setNewItemName] = useState('');
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const uploadParentPathRef = useRef<string | null>(null);
+  const [draggedPath, setDraggedPath] = useState<string | null>(null);
 
   const toggleExpanded = (path: string) => {
     const newExpanded = new Set(expandedNodes);
@@ -112,6 +115,23 @@ export const FileTree = ({
                 isSelected ? 'bg-primary text-primary-foreground' : ''
               }`}
               style={{ paddingLeft: `${level * 16 + 8}px` }}
+              draggable
+              onDragStart={(e) => {
+                e.stopPropagation();
+                setDraggedPath(node.path);
+              }}
+              onDragEnd={() => setDraggedPath(null)}
+              onDragOver={(e) => {
+                if (draggedPath && node.isDirectory && node.path !== draggedPath) {
+                  e.preventDefault();
+                }
+              }}
+              onDrop={(e) => {
+                if (draggedPath && node.isDirectory && node.path !== draggedPath) {
+                  e.preventDefault();
+                  onMove(draggedPath, node.path);
+                }
+              }}
               onClick={() => {
                 if (node.isDirectory) {
                   toggleExpanded(node.path);
