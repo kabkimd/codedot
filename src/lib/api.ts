@@ -98,5 +98,18 @@ export const fileAPI = {
     if (!res.ok) throw new Error('Failed to upload files');
     return res.json();
 
+  },
+  moveItem: async (path: string, target: string) => {
+    const res = await fetch(`${API_BASE}/move`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ path, target })
+    });
+    if (!res.ok) throw new Error('Failed to move item');
+    return res.json();
+
   }
 };

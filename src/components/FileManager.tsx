@@ -135,6 +135,16 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
       .catch((err) => console.error('Failed to upload files', err));
   };
 
+  const handleMove = (path: string, target: string) => {
+    fileAPI
+      .moveItem(path, target)
+      .then(() => {
+        toast({ title: 'Item moved', description: `Moved to ${target}` });
+        refreshTree();
+      })
+      .catch((err) => console.error('Failed to move item', err));
+  };
+
   const selectedFileName = selectedFile.split('/').pop() || '';
   const isEditable = isEditableFile(selectedFileName);
 
@@ -161,6 +171,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
             onRename={handleRename}
             onDelete={handleDelete}
             onUpload={handleUpload}
+            onMove={handleMove}
             selectedFile={selectedFile}
           />
         </div>
