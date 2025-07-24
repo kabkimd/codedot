@@ -221,6 +221,7 @@ app.post('/api/upload', authMiddleware, upload.array('files'), async (req, res) 
   }
 });
 
+
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
 });
