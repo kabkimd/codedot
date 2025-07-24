@@ -27,6 +27,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   const [fileSystem, setFileSystem] = useState<FileTreeNode[]>([]);
   const [selectedFile, setSelectedFile] = useState<string>('');
   const [fileContent, setFileContent] = useState<string>('');
+  const [unsavedFiles, setUnsavedFiles] = useState<Map<string, string>>(new Map());
   const { toast } = useToast();
 
   useEffect(() => {
@@ -52,12 +53,17 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
 
   const handleFileSelect = async (filePath: string) => {
     setSelectedFile(filePath);
-    try {
-      const text = await fileAPI.getFile(filePath);
-      setFileContent(text);
-    } catch (err) {
-      console.error('Failed to load file', err);
-      setFileContent('');
+    const unsaved = unsavedFiles.get(filePath);
+    if (unsaved !== undefined) {
+      setFileContent(unsaved);
+    } else {
+      try {
+        const text = await fileAPI.getFile(filePath);
+        setFileContent(text);
+      } catch (err) {
+        console.error('Failed to load file', err);
+        setFileContent('');
+      }
     }
   };
 
@@ -66,6 +72,11 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
       .saveFile(selectedFile, content)
       .then(() => {
         setFileContent(content);
+        setUnsavedFiles((prev) => {
+          const map = new Map(prev);
+          map.delete(selectedFile);
+          return map;
+        });
         toast({
           title: 'File saved',
           description: `${selectedFile} updated successfully`,
@@ -74,6 +85,18 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
       .catch((err) => {
         console.error('Failed to save file', err);
       });
+  };
+
+  const handleEditorChange = (path: string, text: string, dirty: boolean) => {
+    setUnsavedFiles((prev) => {
+      const map = new Map(prev);
+      if (dirty) {
+        map.set(path, text);
+      } else {
+        map.delete(path);
+      }
+      return map;
+    });
   };
 
   const handleCreateFile = (parentPath: string, name: string) => {
@@ -171,9 +194,10 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
             onRename={handleRename}
             onDelete={handleDelete}
             onUpload={handleUpload}
-            onMove={handleMove}
-            selectedFile={selectedFile}
-          />
+          onMove={handleMove}
+          selectedFile={selectedFile}
+          unsavedFiles={new Set(unsavedFiles.keys())}
+        />
         </div>
 
         {/* Editor/Preview area */}
@@ -184,6 +208,9 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
                 content={fileContent}
                 fileName={selectedFileName}
                 onSave={handleFileSave}
+                onChange={(val, dirty) =>
+                  handleEditorChange(selectedFile, val, dirty)
+                }
               />
             ) : (
               <MediaPreview
