@@ -170,6 +170,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
 
   const selectedFileName = selectedFile.split('/').pop() || '';
   const isEditable = isEditableFile(selectedFileName);
+  const fileIsDirty = unsavedFiles.has(selectedFile);
 
   return (
     <div className="h-screen flex flex-col bg-background">
@@ -211,6 +212,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
                 onChange={(val, dirty) =>
                   handleEditorChange(selectedFile, val, dirty)
                 }
+                initialDirty={fileIsDirty}
               />
             ) : (
               <MediaPreview
