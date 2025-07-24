@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
@@ -66,7 +66,7 @@ export const CodeEditor = ({
     onContentChange?.(content);
   }, [content, fileName, onContentChange, onDirtyChange]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     onSave(value);
     setIsDirty(false);
     onDirtyChange?.(false);
@@ -74,7 +74,25 @@ export const CodeEditor = ({
       title: "File saved",
       description: `${fileName} has been saved successfully.`,
     });
-  };
+  }, [onSave, value, onDirtyChange, fileName, toast]);
+
+  // Save file with Ctrl+S / Cmd+S
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        if (!readOnly && isDirty) {
+          handleSave();
+        }
+      }
+    },
+    [handleSave, readOnly, isDirty]
+  );
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   const handleDownload = () => {
     const blob = new Blob([value], { type: 'text/plain' });
