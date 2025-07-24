@@ -39,14 +39,19 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   const [currentContent, setCurrentContent] = useState<string>('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [usage, setUsage] = useState<{ used: number; max: number }>({ used: 0, max: 250 * 1024 * 1024 });
   const pendingFileRef = useRef<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     const loadTree = async () => {
       try {
-        const data = await fileAPI.getTree();
-        setFileSystem(data);
+        const [tree, u] = await Promise.all([
+          fileAPI.getTree(),
+          fileAPI.getUsage()
+        ]);
+        setFileSystem(tree);
+        setUsage(u);
       } catch (err) {
         console.error('Failed to load file tree', err);
       }
@@ -56,8 +61,12 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
 
   const refreshTree = async () => {
     try {
-      const data = await fileAPI.getTree();
-      setFileSystem(data);
+      const [tree, u] = await Promise.all([
+        fileAPI.getTree(),
+        fileAPI.getUsage()
+      ]);
+      setFileSystem(tree);
+      setUsage(u);
     } catch (err) {
       console.error('Failed to refresh file tree', err);
     }
@@ -210,6 +219,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
         <div className="w-80 min-w-80">
           <FileTree
             nodes={fileSystem}
+            usage={usage}
             onFileSelect={handleFileSelect}
             onCreateFile={handleCreateFile}
             onCreateFolder={handleCreateFolder}

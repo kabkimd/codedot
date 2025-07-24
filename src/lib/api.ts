@@ -23,6 +23,13 @@ export const fileAPI = {
     });
     return res.json();
   },
+  getUsage: async () => {
+    const res = await fetch(`${API_BASE}/usage`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Failed to get usage');
+    return res.json();
+  },
   getFile: async (path: string) => {
     const res = await fetch(`${API_BASE}/file?path=${encodeURIComponent(path)}`, {
       headers: { Authorization: `Bearer ${token}` }
