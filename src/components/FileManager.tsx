@@ -1,8 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FileTree, FileTreeNode } from './FileTree';
 import { CodeEditor } from './CodeEditor';
 import { MediaPreview } from './MediaPreview';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 import { LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { fileAPI } from '@/lib/api';
@@ -27,6 +36,10 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   const [fileSystem, setFileSystem] = useState<FileTreeNode[]>([]);
   const [selectedFile, setSelectedFile] = useState<string>('');
   const [fileContent, setFileContent] = useState<string>('');
+  const [currentContent, setCurrentContent] = useState<string>('');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const pendingFileRef = useRef<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -50,15 +63,28 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
     }
   };
 
-  const handleFileSelect = async (filePath: string) => {
+  const loadFile = async (filePath: string) => {
     setSelectedFile(filePath);
     try {
       const text = await fileAPI.getFile(filePath);
       setFileContent(text);
+      setCurrentContent(text);
+      setHasUnsavedChanges(false);
     } catch (err) {
       console.error('Failed to load file', err);
       setFileContent('');
+      setCurrentContent('');
+      setHasUnsavedChanges(false);
     }
+  };
+
+  const handleFileSelect = (filePath: string) => {
+    if (hasUnsavedChanges && selectedFile && filePath !== selectedFile) {
+      pendingFileRef.current = filePath;
+      setShowUnsavedDialog(true);
+      return;
+    }
+    loadFile(filePath);
   };
 
   const handleFileSave = (content: string) => {
@@ -66,6 +92,8 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
       .saveFile(selectedFile, content)
       .then(() => {
         setFileContent(content);
+        setCurrentContent(content);
+        setHasUnsavedChanges(false);
         toast({
           title: 'File saved',
           description: `${selectedFile} updated successfully`,
@@ -145,6 +173,23 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
       .catch((err) => console.error('Failed to move item', err));
   };
 
+  const handleSaveAndContinue = () => {
+    if (!pendingFileRef.current) return;
+    handleFileSave(currentContent);
+    const next = pendingFileRef.current;
+    pendingFileRef.current = null;
+    setShowUnsavedDialog(false);
+    loadFile(next);
+  };
+
+  const handleDiscardChanges = () => {
+    if (!pendingFileRef.current) return;
+    const next = pendingFileRef.current;
+    pendingFileRef.current = null;
+    setShowUnsavedDialog(false);
+    loadFile(next);
+  };
+
   const selectedFileName = selectedFile.split('/').pop() || '';
   const isEditable = isEditableFile(selectedFileName);
 
@@ -184,6 +229,8 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
                 content={fileContent}
                 fileName={selectedFileName}
                 onSave={handleFileSave}
+                onContentChange={setCurrentContent}
+                onDirtyChange={setHasUnsavedChanges}
               />
             ) : (
               <MediaPreview
@@ -199,6 +246,24 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
           )}
         </div>
       </div>
+      <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>You have unsaved changes</AlertDialogTitle>
+            <AlertDialogDescription>
+              It looks like you've made changes to "{selectedFileName}" that
+              haven't been saved yet. If you leave now, your edits will be lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button onClick={handleSaveAndContinue}>Save &amp; Continue</Button>
+            <Button variant="destructive" onClick={handleDiscardChanges}>
+              Discard Changes
+            </Button>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
