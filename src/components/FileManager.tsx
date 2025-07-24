@@ -41,6 +41,15 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
     loadTree();
   }, []);
 
+  const refreshTree = async () => {
+    try {
+      const data = await fileAPI.getTree();
+      setFileSystem(data);
+    } catch (err) {
+      console.error('Failed to refresh file tree', err);
+    }
+  };
+
   const handleFileSelect = async (filePath: string) => {
     setSelectedFile(filePath);
     try {
@@ -53,50 +62,77 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   };
 
   const handleFileSave = (content: string) => {
-    // In production, this would save to Supabase
-    setFileContent(content);
-    console.log(`Saving file ${selectedFile} with content:`, content);
+    fileAPI
+      .saveFile(selectedFile, content)
+      .then(() => {
+        setFileContent(content);
+        toast({
+          title: 'File saved',
+          description: `${selectedFile} updated successfully`,
+        });
+      })
+      .catch((err) => {
+        console.error('Failed to save file', err);
+      });
   };
 
   const handleCreateFile = (parentPath: string, name: string) => {
-    toast({
-      title: "File created",
-      description: `${name} has been created in ${parentPath}`,
-    });
-    // In production, this would create the file in Supabase
+    fileAPI
+      .createFile(parentPath, name)
+      .then(() => {
+        toast({
+          title: 'File created',
+          description: `${name} has been created in ${parentPath}`,
+        });
+        refreshTree();
+      })
+      .catch((err) => console.error('Failed to create file', err));
   };
 
   const handleCreateFolder = (parentPath: string, name: string) => {
-    toast({
-      title: "Folder created", 
-      description: `${name} has been created in ${parentPath}`,
-    });
-    // In production, this would create the folder in Supabase
+    fileAPI
+      .createFolder(parentPath, name)
+      .then(() => {
+        toast({
+          title: 'Folder created',
+          description: `${name} has been created in ${parentPath}`,
+        });
+        refreshTree();
+      })
+      .catch((err) => console.error('Failed to create folder', err));
   };
 
   const handleRename = (path: string, newName: string) => {
-    toast({
-      title: "Item renamed",
-      description: `Renamed to ${newName}`,
-    });
-    // In production, this would rename in Supabase
+    fileAPI
+      .renameItem(path, newName)
+      .then(() => {
+        toast({ title: 'Item renamed', description: `Renamed to ${newName}` });
+        refreshTree();
+      })
+      .catch((err) => console.error('Failed to rename', err));
   };
 
   const handleDelete = (path: string) => {
-    toast({
-      title: "Item deleted",
-      description: `${path} has been deleted`,
-    });
-    // In production, this would delete from Supabase
+    fileAPI
+      .deleteItem(path)
+      .then(() => {
+        toast({ title: 'Item deleted', description: `${path} has been deleted` });
+        refreshTree();
+      })
+      .catch((err) => console.error('Failed to delete', err));
   };
 
   const handleUpload = (parentPath: string, files: FileList) => {
-    const fileNames = Array.from(files).map(f => f.name).join(', ');
-    toast({
-      title: "Files uploaded",
-      description: `Uploaded: ${fileNames}`,
-    });
-    // In production, this would upload to Supabase
+    fileAPI
+      .uploadFiles(parentPath, files)
+      .then(() => {
+        const fileNames = Array.from(files)
+          .map((f) => f.name)
+          .join(', ');
+        toast({ title: 'Files uploaded', description: `Uploaded: ${fileNames}` });
+        refreshTree();
+      })
+      .catch((err) => console.error('Failed to upload files', err));
   };
 
   const selectedFileName = selectedFile.split('/').pop() || '';

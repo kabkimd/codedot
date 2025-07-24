@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import multer from 'multer';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -24,6 +25,7 @@ function getUser(username) {
 
 app.use(cors());
 app.use(express.json());
+const upload = multer({ storage: multer.memoryStorage() });
 
 function userDir(username) {
   return path.resolve(process.cwd(), 'users', username);
@@ -111,6 +113,109 @@ app.get('/api/file', authMiddleware, async (req, res) => {
   try {
     const content = await fs.readFile(normalized, 'utf8');
     res.type('text/plain').send(content);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/file', authMiddleware, async (req, res) => {
+  const BASE_DIR = userDir(req.user);
+  const { path: filePath, content } = req.body || {};
+  if (!filePath) {
+    return res.status(400).json({ error: 'path required' });
+  }
+  const normalized = path.resolve(filePath);
+  if (!normalized.startsWith(BASE_DIR)) {
+    return res.status(400).json({ error: 'invalid path' });
+  }
+  try {
+    await fs.writeFile(normalized, content ?? '', 'utf8');
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/file', authMiddleware, async (req, res) => {
+  const BASE_DIR = userDir(req.user);
+  const { parent, name, isDirectory } = req.body || {};
+  if (!parent || !name) {
+    return res.status(400).json({ error: 'parent and name required' });
+  }
+  const parentPath = path.resolve(parent);
+  if (!parentPath.startsWith(BASE_DIR)) {
+    return res.status(400).json({ error: 'invalid path' });
+  }
+  const newPath = path.join(parentPath, name);
+  try {
+    if (isDirectory) {
+      await fs.mkdir(newPath, { recursive: true });
+    } else {
+      await fs.writeFile(newPath, '', { flag: 'wx' });
+    }
+    res.json({ ok: true, path: newPath });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/file', authMiddleware, async (req, res) => {
+  const BASE_DIR = userDir(req.user);
+  const filePath = req.query.path;
+  if (typeof filePath !== 'string') {
+    return res.status(400).json({ error: 'path query parameter required' });
+  }
+  const normalized = path.resolve(filePath);
+  if (!normalized.startsWith(BASE_DIR)) {
+    return res.status(400).json({ error: 'invalid path' });
+  }
+  try {
+    await fs.rm(normalized, { recursive: true, force: true });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch('/api/file', authMiddleware, async (req, res) => {
+  const BASE_DIR = userDir(req.user);
+  const { path: filePath, newName } = req.body || {};
+  if (!filePath || !newName) {
+    return res.status(400).json({ error: 'path and newName required' });
+  }
+  const normalized = path.resolve(filePath);
+  if (!normalized.startsWith(BASE_DIR)) {
+    return res.status(400).json({ error: 'invalid path' });
+  }
+  const newPath = path.join(path.dirname(normalized), newName);
+  try {
+    await fs.rename(normalized, newPath);
+    res.json({ ok: true, path: newPath });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/upload', authMiddleware, upload.array('files'), async (req, res) => {
+  const BASE_DIR = userDir(req.user);
+  const parent = req.body.parent;
+  if (!parent) {
+    return res.status(400).json({ error: 'parent required' });
+  }
+  const parentPath = path.resolve(parent);
+  if (!parentPath.startsWith(BASE_DIR)) {
+    return res.status(400).json({ error: 'invalid path' });
+  }
+  try {
+    const files = req.files || [];
+    await Promise.all(
+      Array.isArray(files)
+        ? files.map((f) =>
+            fs.writeFile(path.join(parentPath, f.originalname), f.buffer)
+          )
+        : []
+    );
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
