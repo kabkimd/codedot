@@ -5,6 +5,7 @@ import fs from 'fs/promises';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import multer from 'multer';
+import archiver from 'archiver';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -272,6 +273,33 @@ app.post('/api/upload', authMiddleware, upload.array('files'), async (req, res) 
       files.map((f) => fs.writeFile(path.join(parentPath, f.originalname), f.buffer))
     );
     res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/download', authMiddleware, async (req, res) => {
+  const BASE_DIR = userDir(req.user);
+  const itemPath = req.query.path;
+  if (typeof itemPath !== 'string') {
+    return res.status(400).json({ error: 'path query parameter required' });
+  }
+  const normalized = path.resolve(itemPath);
+  if (!normalized.startsWith(BASE_DIR)) {
+    return res.status(400).json({ error: 'invalid path' });
+  }
+  try {
+    const stat = await fs.stat(normalized);
+    if (stat.isDirectory()) {
+      res.setHeader('Content-Disposition', `attachment; filename=${path.basename(normalized)}.zip`);
+      res.setHeader('Content-Type', 'application/zip');
+      const archive = archiver('zip', { zlib: { level: 9 } });
+      archive.directory(normalized, false);
+      archive.finalize();
+      archive.pipe(res);
+    } else {
+      res.download(normalized);
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

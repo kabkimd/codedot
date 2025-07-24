@@ -117,6 +117,12 @@ export const fileAPI = {
     });
     if (!res.ok) throw new Error('Failed to move item');
     return res.json();
-
+  },
+  downloadItem: async (path: string) => {
+    const res = await fetch(`${API_BASE}/download?path=${encodeURIComponent(path)}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Failed to download');
+    return res.blob();
   }
 };
