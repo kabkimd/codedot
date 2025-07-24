@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
@@ -63,7 +63,7 @@ export const CodeEditor = ({
     setIsDirty(initialDirty);
   }, [content, fileName, initialDirty]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     onSave(value);
     setIsDirty(false);
     onChange && onChange(value, false);
@@ -71,7 +71,7 @@ export const CodeEditor = ({
       title: "File saved",
       description: `${fileName} has been saved successfully.`,
     });
-  };
+  }, [onSave, value, onChange, fileName, toast]);
 
   const handleDownload = () => {
     const blob = new Blob([value], { type: 'text/plain' });
@@ -84,6 +84,20 @@ export const CodeEditor = ({
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        if (!readOnly && isDirty) {
+          handleSave();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleSave, readOnly, isDirty]);
 
   const extensions = [
     ...getLanguageExtension(fileName),
