@@ -182,7 +182,10 @@ app.post('/api/file', authMiddleware, async (req, res) => {
   if (!parentPath.startsWith(BASE_DIR)) {
     return res.status(400).json({ error: 'invalid path' });
   }
-  const newPath = path.join(parentPath, name);
+  const newPath = path.resolve(parentPath, name);
+  if (!newPath.startsWith(BASE_DIR)) {
+    return res.status(400).json({ error: 'invalid path' });
+  }
   try {
     if (isDirectory) {
       await fs.mkdir(newPath, { recursive: true });
@@ -226,7 +229,13 @@ app.patch('/api/file', authMiddleware, async (req, res) => {
   if (!normalized.startsWith(BASE_DIR)) {
     return res.status(400).json({ error: 'invalid path' });
   }
-  const newPath = path.join(path.dirname(normalized), newName);
+  if (normalized === BASE_DIR) {
+    return res.status(400).json({ error: 'cannot rename root folder' });
+  }
+  const newPath = path.resolve(path.dirname(normalized), newName);
+  if (!newPath.startsWith(BASE_DIR)) {
+    return res.status(400).json({ error: 'invalid path' });
+  }
   try {
     await fs.rename(normalized, newPath);
     res.json({ ok: true, path: newPath });
@@ -273,7 +282,13 @@ app.post('/api/upload', authMiddleware, upload.array('files'), async (req, res) 
       return res.status(400).json({ error: 'Storage limit exceeded' });
     }
     await Promise.all(
-      files.map((f) => fs.writeFile(path.join(parentPath, f.originalname), f.buffer))
+      files.map(async (f) => {
+        const dest = path.resolve(parentPath, f.originalname);
+        if (!dest.startsWith(BASE_DIR)) {
+          throw new Error('invalid path');
+        }
+        await fs.writeFile(dest, f.buffer);
+      })
     );
     res.json({ ok: true });
   } catch (err) {
