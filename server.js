@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import multer from 'multer';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -24,6 +25,7 @@ function getUser(username) {
 
 app.use(cors());
 app.use(express.json());
+const upload = multer({ storage: multer.memoryStorage() });
 
 function userDir(username) {
   return path.resolve(process.cwd(), 'users', username);
@@ -193,6 +195,32 @@ app.patch('/api/file', authMiddleware, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+app.post('/api/upload', authMiddleware, upload.array('files'), async (req, res) => {
+  const BASE_DIR = userDir(req.user);
+  const parent = req.body.parent;
+  if (!parent) {
+    return res.status(400).json({ error: 'parent required' });
+  }
+  const parentPath = path.resolve(parent);
+  if (!parentPath.startsWith(BASE_DIR)) {
+    return res.status(400).json({ error: 'invalid path' });
+  }
+  try {
+    const files = req.files || [];
+    await Promise.all(
+      Array.isArray(files)
+        ? files.map((f) =>
+            fs.writeFile(path.join(parentPath, f.originalname), f.buffer)
+          )
+        : []
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);

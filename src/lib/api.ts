@@ -85,5 +85,18 @@ export const fileAPI = {
     });
     if (!res.ok) throw new Error('Failed to rename');
     return res.json();
+  },
+  uploadFiles: async (parent: string, files: FileList) => {
+    const form = new FormData();
+    form.append('parent', parent);
+    Array.from(files).forEach((f) => form.append('files', f));
+    const res = await fetch(`${API_BASE}/upload`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: form
+    });
+    if (!res.ok) throw new Error('Failed to upload files');
+    return res.json();
+
   }
 };
