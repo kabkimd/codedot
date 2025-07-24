@@ -17,6 +17,12 @@ interface CodeEditorProps {
   onSave: (content: string) => void;
   onChange?: (content: string, dirty: boolean) => void;
   readOnly?: boolean;
+  /**
+   * Indicates whether the provided content already has unsaved changes.
+   * This is used when switching back to a previously edited file so the
+   * Save button remains enabled.
+   */
+  initialDirty?: boolean;
 }
 
 const getLanguageExtension = (fileName: string) => {
@@ -46,15 +52,16 @@ export const CodeEditor = ({
   onSave,
   onChange,
   readOnly = false,
+  initialDirty = false,
 }: CodeEditorProps) => {
   const [value, setValue] = useState(content);
-  const [isDirty, setIsDirty] = useState(false);
+  const [isDirty, setIsDirty] = useState(initialDirty);
   const { toast } = useToast();
 
   useEffect(() => {
     setValue(content);
-    setIsDirty(false);
-  }, [content, fileName]);
+    setIsDirty(initialDirty);
+  }, [content, fileName, initialDirty]);
 
   const handleSave = () => {
     onSave(value);
