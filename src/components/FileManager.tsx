@@ -5,6 +5,7 @@ import { MediaPreview } from './MediaPreview';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { fileAPI } from '@/lib/api';
 
 interface FileManagerProps {
   username: string;
@@ -31,25 +32,8 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   useEffect(() => {
     const loadTree = async () => {
       try {
-        const res = await fetch('/api/tree');
-        if (!res.ok) {
-          console.error(
-            'Server error while loading file tree:',
-            res.status,
-            res.statusText,
-          );
-          return;
-        }
-
-        const text = await res.text();
-        console.debug('raw tree response:', text);
-
-        try {
-          const data = JSON.parse(text);
-          setFileSystem(data);
-        } catch (e) {
-          console.error('Failed to parse file tree JSON:', e);
-        }
+        const data = await fileAPI.getTree();
+        setFileSystem(data);
       } catch (err) {
         console.error('Failed to load file tree', err);
       }
@@ -60,13 +44,8 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   const handleFileSelect = async (filePath: string) => {
     setSelectedFile(filePath);
     try {
-      const res = await fetch(`/api/file?path=${encodeURIComponent(filePath)}`);
-      if (res.ok) {
-        const text = await res.text();
-        setFileContent(text);
-      } else {
-        setFileContent('');
-      }
+      const text = await fileAPI.getFile(filePath);
+      setFileContent(text);
     } catch (err) {
       console.error('Failed to load file', err);
       setFileContent('');
