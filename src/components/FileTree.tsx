@@ -44,6 +44,7 @@ interface FileTreeProps {
   onUpload: (parentPath: string, files: FileList) => void;
   onMove: (path: string, target: string) => void;
   selectedFile?: string;
+  unsavedFiles?: Set<string>;
 }
 
 export const FileTree = ({
@@ -55,7 +56,8 @@ export const FileTree = ({
   onDelete,
   onUpload,
   onMove,
-  selectedFile
+  selectedFile,
+  unsavedFiles
 }: FileTreeProps) => {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [showCreateDialog, setShowCreateDialog] = useState<{
@@ -155,12 +157,17 @@ export const FileTree = ({
                   )}
                 </button>
               )}
-              <FileIcon 
-                name={node.name} 
-                isDirectory={node.isDirectory} 
-                size={14} 
+              <FileIcon
+                name={node.name}
+                isDirectory={node.isDirectory}
+                size={14}
               />
-              <span className="ml-2 text-sm truncate">{node.name}</span>
+              <div className="ml-2 text-sm truncate flex items-center">
+                <span className="truncate">{node.name}</span>
+                {unsavedFiles?.has(node.path) && !node.isDirectory && (
+                  <span className="ml-1 text-primary">●</span>
+                )}
+              </div>
             </div>
           </ContextMenuTrigger>
           <ContextMenuContent>
