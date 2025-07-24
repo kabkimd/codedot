@@ -97,5 +97,6 @@ export const fileAPI = {
     });
     if (!res.ok) throw new Error('Failed to upload files');
     return res.json();
+
   }
 };
