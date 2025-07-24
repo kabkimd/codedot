@@ -15,6 +15,14 @@ interface CodeEditorProps {
   content: string;
   fileName: string;
   onSave: (content: string) => void;
+  /**
+   * Called whenever the editor content changes.
+   */
+  onContentChange?: (content: string) => void;
+  /**
+   * Called whenever the dirty state changes.
+   */
+  onDirtyChange?: (dirty: boolean) => void;
   readOnly?: boolean;
 }
 
@@ -39,7 +47,14 @@ const getLanguageExtension = (fileName: string) => {
   }
 };
 
-export const CodeEditor = ({ content, fileName, onSave, readOnly = false }: CodeEditorProps) => {
+export const CodeEditor = ({
+  content,
+  fileName,
+  onSave,
+  onContentChange,
+  onDirtyChange,
+  readOnly = false,
+}: CodeEditorProps) => {
   const [value, setValue] = useState(content);
   const [isDirty, setIsDirty] = useState(false);
   const { toast } = useToast();
@@ -47,11 +62,14 @@ export const CodeEditor = ({ content, fileName, onSave, readOnly = false }: Code
   useEffect(() => {
     setValue(content);
     setIsDirty(false);
-  }, [content, fileName]);
+    onDirtyChange?.(false);
+    onContentChange?.(content);
+  }, [content, fileName, onContentChange, onDirtyChange]);
 
   const handleSave = () => {
     onSave(value);
     setIsDirty(false);
+    onDirtyChange?.(false);
     toast({
       title: "File saved",
       description: `${fileName} has been saved successfully.`,
@@ -124,7 +142,10 @@ export const CodeEditor = ({ content, fileName, onSave, readOnly = false }: Code
           value={value}
           onChange={(val) => {
             setValue(val);
-            setIsDirty(val !== content);
+            const dirty = val !== content;
+            setIsDirty(dirty);
+            onDirtyChange?.(dirty);
+            onContentChange?.(val);
           }}
           extensions={extensions}
           readOnly={readOnly}
