@@ -13,8 +13,26 @@ export const authAPI = {
 };
 
 let token = '';
-export function setToken(t: string) { token = t; }
+
+// Load token from localStorage on module initialization
+if (typeof localStorage !== 'undefined') {
+  const stored = localStorage.getItem('token');
+  if (stored) token = stored;
+}
+
+export function setToken(t: string) {
+  token = t;
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('token', t);
+  }
+}
 export function getToken() { return token; }
+export function clearToken() {
+  token = '';
+  if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem('token');
+  }
+}
 
 export const fileAPI = {
   getTree: async () => {
