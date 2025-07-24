@@ -123,12 +123,16 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   };
 
   const handleUpload = (parentPath: string, files: FileList) => {
-    const fileNames = Array.from(files).map(f => f.name).join(', ');
-    toast({
-      title: "Files uploaded",
-      description: `Uploaded: ${fileNames}`,
-    });
-    // In production, this would upload to Supabase
+    fileAPI
+      .uploadFiles(parentPath, files)
+      .then(() => {
+        const fileNames = Array.from(files)
+          .map((f) => f.name)
+          .join(', ');
+        toast({ title: 'Files uploaded', description: `Uploaded: ${fileNames}` });
+        refreshTree();
+      })
+      .catch((err) => console.error('Failed to upload files', err));
   };
 
   const selectedFileName = selectedFile.split('/').pop() || '';
