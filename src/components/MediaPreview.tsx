@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 
 interface MediaPreviewProps {
   fileName: string;
@@ -30,25 +30,12 @@ export const MediaPreview = ({ fileName, filePath, content }: MediaPreviewProps)
   const [error, setError] = useState(false);
   const fileType = getFileType(fileName);
 
-  const handleDownload = () => {
-    // In a real app, this would download from the server
-    const link = document.createElement('a');
-    link.href = filePath;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   if (error) {
     return (
       <div className="h-full flex flex-col bg-background">
         <div className="flex items-center justify-between p-2 border-b border-border bg-muted/20">
           <span className="text-sm font-medium">{fileName}</span>
-          <Button size="sm" variant="outline" onClick={handleDownload}>
-            <Download size={14} className="mr-1" />
-            Download
-          </Button>
         </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center text-muted-foreground">
@@ -64,12 +51,6 @@ export const MediaPreview = ({ fileName, filePath, content }: MediaPreviewProps)
     <div className="h-full flex flex-col bg-background">
       <div className="flex items-center justify-between p-2 border-b border-border bg-muted/20">
         <span className="text-sm font-medium">{fileName}</span>
-        <div className="flex items-center space-x-2">
-          <Button size="sm" variant="outline" onClick={handleDownload}>
-            <Download size={14} className="mr-1" />
-            Download
-          </Button>
-        </div>
       </div>
       <div className="flex-1 overflow-auto p-4">
         {fileType === 'image' && (

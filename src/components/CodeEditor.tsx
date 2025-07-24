@@ -8,7 +8,7 @@ import { oneDark } from '@codemirror/theme-one-dark';
 import { EditorView } from '@codemirror/view';
 import { search } from '@codemirror/search';
 import { Button } from '@/components/ui/button';
-import { Save, Download } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface CodeEditorProps {
@@ -94,17 +94,6 @@ export const CodeEditor = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  const handleDownload = () => {
-    const blob = new Blob([value], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
   const extensions = [
     ...getLanguageExtension(fileName),
@@ -145,14 +134,6 @@ export const CodeEditor = ({
               Save
             </Button>
           )}
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleDownload}
-          >
-            <Download size={14} className="mr-1" />
-            Download
-          </Button>
         </div>
       </div>
       <div className="flex-1 overflow-hidden">
