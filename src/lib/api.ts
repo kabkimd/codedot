@@ -12,6 +12,16 @@ export const authAPI = {
   }
 };
 
+export const userAPI = {
+  getCurrent: async () => {
+    const res = await fetch(`${API_BASE}/user`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Failed to load user');
+    return res.json();
+  }
+};
+
 let token = '';
 
 // Load token from localStorage on module initialization
