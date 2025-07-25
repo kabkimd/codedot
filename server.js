@@ -32,7 +32,7 @@ function userDir(username) {
   return path.resolve(process.cwd(), 'users', username);
 }
 
-const MAX_BYTES = 250 * 1024 * 1024; // 250MB per user
+const MAX_BYTES = 250 * 1024 * 1024;
 
 async function getDirectorySize(dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
