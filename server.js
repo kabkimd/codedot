@@ -46,11 +46,16 @@ async function saveTokens() {
   await fs.writeFile(TOKENS_PATH, JSON.stringify(TOKENS, null, 2));
 }
 
-// Simple transport that logs emails to console
+// OAuth2 transport using Gmail credentials
 const transporter = nodemailer.createTransport({
-  streamTransport: true,
-  newline: 'unix',
-  buffer: true,
+  service: 'gmail',
+  auth: {
+    type: 'OAuth2',
+    user: process.env.GMAIL_USER,
+    clientId: process.env.GMAIL_CLIENT_ID,
+    clientSecret: process.env.GMAIL_CLIENT_SECRET,
+    refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+  },
 });
 
 app.use(cors());
@@ -109,7 +114,7 @@ app.post('/api/auth/forgot', async (req, res) => {
       await fs.readFile(path.resolve(process.cwd(), 'resetEmail.html'), 'utf8')
     ).replace(/\{\{link\}\}/g, link);
     const message = await transporter.sendMail({
-      from: 'no-reply@example.com',
+      from: 'the-remedy-for-lost-words@kabkimd.nl',
       to: user.email,
       subject: 'Password reset',
       html,
