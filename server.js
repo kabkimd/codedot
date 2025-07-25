@@ -21,7 +21,7 @@ try {
 }
 
 function getUser(username) {
-  return USERS.find(u => u.username === username);
+  return USERS.find((u) => u.username === username.toLowerCase());
 }
 
 async function saveUsers() {
@@ -33,7 +33,7 @@ app.use(express.json());
 const upload = multer({ storage: multer.memoryStorage() });
 
 function userDir(username) {
-  return path.resolve(process.cwd(), 'users', username);
+  return path.resolve(process.cwd(), 'users', username.toLowerCase());
 }
 
 const MAX_BYTES = 250 * 1024 * 1024;
@@ -53,7 +53,8 @@ async function getDirectorySize(dir) {
 
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body || {};
-  const user = getUser(username);
+  const usernameLc = (username || '').toLowerCase();
+  const user = getUser(usernameLc);
   if (!user) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
@@ -61,8 +62,8 @@ app.post('/api/auth/login', async (req, res) => {
   if (!match) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
-  const token = jwt.sign({ username }, SECRET);
-  res.json({ user: { username }, token });
+  const token = jwt.sign({ username: usernameLc }, SECRET);
+  res.json({ user: { username: usernameLc }, token });
 });
 
 app.get('/api/user', authMiddleware, async (req, res) => {
@@ -93,20 +94,23 @@ app.patch('/api/user', authMiddleware, async (req, res) => {
   if (typeof isPublic === 'boolean') user.isPublic = isPublic;
 
   let newToken = null;
-  if (newUsername && newUsername !== user.username) {
-    if (!/^[\w-]+$/.test(newUsername)) {
+  if (newUsername) {
+    const normalized = newUsername.toLowerCase();
+    if (normalized !== user.username) {
+      if (!/^[\w-]+$/.test(normalized)) {
       return res.status(400).json({ error: 'Invalid username' });
+      }
+      if (getUser(normalized)) {
+        return res.status(400).json({ error: 'Username taken' });
+      }
+      try {
+        await fs.rename(userDir(user.username), userDir(normalized));
+      } catch (err) {
+        return res.status(500).json({ error: 'Failed to rename user directory' });
+      }
+      user.username = normalized;
+      newToken = jwt.sign({ username: normalized }, SECRET);
     }
-    if (getUser(newUsername)) {
-      return res.status(400).json({ error: 'Username taken' });
-    }
-    try {
-      await fs.rename(userDir(user.username), userDir(newUsername));
-    } catch (err) {
-      return res.status(500).json({ error: 'Failed to rename user directory' });
-    }
-    user.username = newUsername;
-    newToken = jwt.sign({ username: newUsername }, SECRET);
   }
 
   if (newPassword) {
