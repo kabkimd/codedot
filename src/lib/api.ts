@@ -9,6 +9,24 @@ export const authAPI = {
     });
     if (!res.ok) throw new Error('Login failed');
     return res.json();
+  },
+  forgotPassword: async (identifier: string) => {
+    const res = await fetch(`${API_BASE}/auth/forgot`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier })
+    });
+    if (!res.ok) throw new Error('Request failed');
+    return res.json();
+  },
+  resetPassword: async (token: string, newPassword: string) => {
+    const res = await fetch(`${API_BASE}/auth/reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, newPassword })
+    });
+    if (!res.ok) throw new Error('Reset failed');
+    return res.json();
   }
 };
 

@@ -6,10 +6,15 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import archiver from 'archiver';
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const SECRET = process.env.JWT_SECRET || 'secret-key';
+
+// Token expiration in ms (1 hour)
+const TOKEN_EXPIRATION = 60 * 60 * 1000;
 
 // Load users from users.json
 const USERS_PATH = path.resolve(process.cwd(), 'users.json');
@@ -20,6 +25,15 @@ try {
   console.error('Failed to load users.json', e);
 }
 
+// Load reset tokens from tokens.json
+const TOKENS_PATH = path.resolve(process.cwd(), 'tokens.json');
+let TOKENS = {};
+try {
+  TOKENS = JSON.parse(await fs.readFile(TOKENS_PATH, 'utf8'));
+} catch {
+  TOKENS = {};
+}
+
 function getUser(username) {
   return USERS.find((u) => u.username === username.toLowerCase());
 }
@@ -27,6 +41,17 @@ function getUser(username) {
 async function saveUsers() {
   await fs.writeFile(USERS_PATH, JSON.stringify(USERS, null, 2));
 }
+
+async function saveTokens() {
+  await fs.writeFile(TOKENS_PATH, JSON.stringify(TOKENS, null, 2));
+}
+
+// Simple transport that logs emails to console
+const transporter = nodemailer.createTransport({
+  streamTransport: true,
+  newline: 'unix',
+  buffer: true,
+});
 
 app.use(cors());
 app.use(express.json());
@@ -64,6 +89,54 @@ app.post('/api/auth/login', async (req, res) => {
   }
   const token = jwt.sign({ username: usernameLc }, SECRET);
   res.json({ user: { username: usernameLc }, token });
+});
+
+app.post('/api/auth/forgot', async (req, res) => {
+  const { identifier } = req.body || {};
+  if (!identifier) {
+    return res.status(400).json({ error: 'identifier required' });
+  }
+  const id = String(identifier).toLowerCase();
+  const user = USERS.find(
+    (u) => u.username === id || (u.email && u.email.toLowerCase() === id)
+  );
+  if (user) {
+    const token = crypto.randomBytes(32).toString('hex');
+    TOKENS[token] = { username: user.username, expires: Date.now() + TOKEN_EXPIRATION };
+    await saveTokens();
+    const link = `${req.protocol}://${req.get('host')}/reset?token=${token}`;
+    const html = (
+      await fs.readFile(path.resolve(process.cwd(), 'resetEmail.html'), 'utf8')
+    ).replace(/\{\{link\}\}/g, link);
+    const message = await transporter.sendMail({
+      from: 'no-reply@example.com',
+      to: user.email,
+      subject: 'Password reset',
+      html,
+    });
+    console.log('Sent reset email:', message.message.toString());
+  }
+  res.json({ ok: true });
+});
+
+app.post('/api/auth/reset', async (req, res) => {
+  const { token, newPassword } = req.body || {};
+  if (!token || !newPassword) {
+    return res.status(400).json({ error: 'token and newPassword required' });
+  }
+  const entry = TOKENS[token];
+  if (!entry || entry.expires < Date.now()) {
+    return res.status(400).json({ error: 'Invalid or expired token' });
+  }
+  const user = getUser(entry.username);
+  if (!user) {
+    return res.status(400).json({ error: 'User not found' });
+  }
+  user.password = await bcrypt.hash(String(newPassword), 10);
+  delete TOKENS[token];
+  await saveUsers();
+  await saveTokens();
+  res.json({ ok: true });
 });
 
 app.get('/api/user', authMiddleware, async (req, res) => {
