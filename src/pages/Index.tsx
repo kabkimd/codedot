@@ -16,8 +16,9 @@ const Index = () => {
   }, []);
 
   const handleLogin = (username: string) => {
-    setUser(username);
-    localStorage.setItem('username', username);
+    const normalized = username.toLowerCase();
+    setUser(normalized);
+    localStorage.setItem('username', normalized);
   };
 
   const handleLogout = () => {

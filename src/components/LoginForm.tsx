@@ -24,10 +24,10 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
     try {
       const data = await authAPI.login(username, password);
       setToken(data.token);
-      onLogin(username);
+      onLogin(data.user.username);
       toast({
         title: 'Login successful',
-        description: `Welcome back, ${username}!`,
+        description: `Welcome back, ${data.user.username}!`,
       });
     } catch (e) {
       toast({
@@ -54,7 +54,7 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
                 id="username"
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => setUsername(e.target.value.toLowerCase())}
                 required
                 className="border"
               />
