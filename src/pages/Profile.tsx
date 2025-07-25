@@ -55,7 +55,7 @@ const Profile = () => {
     }
     try {
       const result = await userAPI.update({
-        username,
+        username: username.toLowerCase(),
         full_name: fullName,
         email,
         isPublic,
@@ -90,7 +90,7 @@ const Profile = () => {
               <Input
                 id="username"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => setUsername(e.target.value.toLowerCase())}
               />
             </div>
             <div className="space-y-2">
