@@ -19,6 +19,18 @@ export const userAPI = {
     });
     if (!res.ok) throw new Error('Failed to load user');
     return res.json();
+  },
+  update: async (data: Record<string, unknown>) => {
+    const res = await fetch(`${API_BASE}/user`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to update profile');
+    return res.json();
   }
 };
 

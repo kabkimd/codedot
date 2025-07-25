@@ -24,6 +24,10 @@ function getUser(username) {
   return USERS.find(u => u.username === username);
 }
 
+async function saveUsers() {
+  await fs.writeFile(USERS_PATH, JSON.stringify(USERS, null, 2));
+}
+
 app.use(cors());
 app.use(express.json());
 const upload = multer({ storage: multer.memoryStorage() });
@@ -66,8 +70,64 @@ app.get('/api/user', authMiddleware, async (req, res) => {
   if (!user) {
     return res.status(404).json({ error: 'User not found' });
   }
-  const { username, full_name, isPublic } = user;
-  res.json({ username, full_name, isPublic });
+  const { username, full_name, email, isPublic } = user;
+  res.json({ username, full_name, email, isPublic });
+});
+
+app.patch('/api/user', authMiddleware, async (req, res) => {
+  const user = getUser(req.user);
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  const {
+    username: newUsername,
+    full_name,
+    email,
+    isPublic,
+    currentPassword,
+    newPassword,
+  } = req.body || {};
+
+  if (typeof full_name === 'string') user.full_name = full_name;
+  if (typeof email === 'string') user.email = email;
+  if (typeof isPublic === 'boolean') user.isPublic = isPublic;
+
+  let newToken = null;
+  if (newUsername && newUsername !== user.username) {
+    if (!/^[\w-]+$/.test(newUsername)) {
+      return res.status(400).json({ error: 'Invalid username' });
+    }
+    if (getUser(newUsername)) {
+      return res.status(400).json({ error: 'Username taken' });
+    }
+    try {
+      await fs.rename(userDir(user.username), userDir(newUsername));
+    } catch (err) {
+      return res.status(500).json({ error: 'Failed to rename user directory' });
+    }
+    user.username = newUsername;
+    newToken = jwt.sign({ username: newUsername }, SECRET);
+  }
+
+  if (newPassword) {
+    if (!currentPassword) {
+      return res.status(400).json({ error: 'Current password required' });
+    }
+    const match = await bcrypt.compare(currentPassword, user.password);
+    if (!match) {
+      return res.status(400).json({ error: 'Current password incorrect' });
+    }
+    user.password = await bcrypt.hash(newPassword, 10);
+  }
+
+  await saveUsers();
+  res.json({
+    username: user.username,
+    full_name: user.full_name,
+    email: user.email,
+    isPublic: user.isPublic,
+    token: newToken,
+  });
 });
 
 function authMiddleware(req, res, next) {
