@@ -61,6 +61,15 @@ app.post('/api/auth/login', async (req, res) => {
   res.json({ user: { username }, token });
 });
 
+app.get('/api/user', authMiddleware, async (req, res) => {
+  const user = getUser(req.user);
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  const { username, full_name, isPublic } = user;
+  res.json({ username, full_name, isPublic });
+});
+
 function authMiddleware(req, res, next) {
   const auth = req.headers.authorization || '';
   if (!auth.startsWith('Bearer ')) {
