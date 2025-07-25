@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { authAPI, setToken } from '@/lib/api';
+import { Link } from 'react-router-dom';
 
 interface LoginFormProps {
   onLogin: (username: string) => void;
@@ -69,17 +70,20 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
                 required
                 className="border"
               />
-            </div>
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isLoading}
-            >
-              {isLoading ? 'Logging in...' : 'Login'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          </div>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Logging in...' : 'Login'}
+          </Button>
+          <div className="pt-2 text-center">
+            <Link to="/forgot" className="text-sm underline">Forgot password?</Link>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  </div>
   );
 };
