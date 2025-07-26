@@ -287,16 +287,48 @@ const csvLinter = linter((view) => {
   return diagnostics;
 });
 
-// Simple JavaScript/TypeScript linter for basic syntax errors
+// Enhanced JavaScript/TypeScript linter for common syntax and semantic errors
 const jsLinter = linter((view) => {
   const doc = view.state.doc.toString();
   const diagnostics = [];
   
-  // Basic checks for common syntax errors
+  // Common JavaScript keywords and globals
+  const jsKeywords = new Set(['var', 'let', 'const', 'function', 'class', 'if', 'else', 'for', 'while', 'do', 'switch', 'case', 'default', 'try', 'catch', 'finally', 'throw', 'return', 'break', 'continue', 'new', 'this', 'super', 'extends', 'import', 'export', 'from', 'as', 'async', 'await', 'yield', 'typeof', 'instanceof', 'in', 'of', 'delete', 'void', 'null', 'undefined', 'true', 'false']);
+  
+  const jsGlobals = new Set(['console', 'window', 'document', 'Array', 'Object', 'String', 'Number', 'Boolean', 'Date', 'Math', 'JSON', 'RegExp', 'Error', 'Promise', 'setTimeout', 'setInterval', 'clearTimeout', 'clearInterval', 'fetch', 'localStorage', 'sessionStorage', 'location', 'history', 'navigator', 'alert', 'confirm', 'prompt', 'parseInt', 'parseFloat', 'isNaN', 'isFinite', 'encodeURIComponent', 'decodeURIComponent', 'require', 'module', 'exports', 'global', 'process', 'Buffer', 'React', 'ReactDOM', 'useState', 'useEffect', 'useCallback', 'useMemo', 'useRef', 'useContext', 'useReducer', 'Component', 'PureComponent']);
+  
+  // Extract declared variables and functions
+  const declared = new Set();
+  const functionRegex = /function\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/g;
+  const varRegex = /(?:var|let|const)\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/g;
+  const paramRegex = /function\s*[a-zA-Z_$]*\s*\(([^)]*)\)/g;
+  const arrowFuncRegex = /(?:var|let|const)\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*\(/g;
+  
+  let match;
+  while ((match = functionRegex.exec(doc)) !== null) {
+    declared.add(match[1]);
+  }
+  while ((match = varRegex.exec(doc)) !== null) {
+    declared.add(match[1]);
+  }
+  while ((match = arrowFuncRegex.exec(doc)) !== null) {
+    declared.add(match[1]);
+  }
+  while ((match = paramRegex.exec(doc)) !== null) {
+    const params = match[1].split(',').map(p => p.trim().split(/\s+/)[0]).filter(p => p);
+    params.forEach(param => declared.add(param));
+  }
+  
   const lines = doc.split('\n');
   lines.forEach((line, lineIndex) => {
     const from = view.state.doc.line(lineIndex + 1).from;
     const to = view.state.doc.line(lineIndex + 1).to;
+    const trimmedLine = line.trim();
+    
+    // Skip empty lines and comments
+    if (!trimmedLine || trimmedLine.startsWith('//') || trimmedLine.startsWith('/*')) {
+      return;
+    }
     
     // Check for unmatched brackets/braces
     const openBrackets = (line.match(/\{/g) || []).length;
@@ -304,14 +336,64 @@ const jsLinter = linter((view) => {
     const openParens = (line.match(/\(/g) || []).length;
     const closeParens = (line.match(/\)/g) || []).length;
     
-    if (line.trim() && (openBrackets > closeBrackets + 1 || openParens > closeParens + 1)) {
-      // Only warn if there's a significant imbalance
-      if (openBrackets - closeBrackets > 1 || openParens - closeParens > 1) {
+    if (openBrackets - closeBrackets > 1 || openParens - closeParens > 1) {
+      diagnostics.push({
+        from,
+        to,
+        severity: 'warning' as const,
+        message: 'Possible unmatched brackets or parentheses'
+      });
+    }
+    
+    // Check for undefined variables (simple heuristic)
+    const identifierRegex = /\b([a-zA-Z_$][a-zA-Z0-9_$]*)\b/g;
+    let identifierMatch;
+    while ((identifierMatch = identifierRegex.exec(line)) !== null) {
+      const identifier = identifierMatch[1];
+      const identifierStart = from + identifierMatch.index;
+      const identifierEnd = identifierStart + identifier.length;
+      
+      // Skip if it's a keyword, global, or declared variable
+      if (jsKeywords.has(identifier) || jsGlobals.has(identifier) || declared.has(identifier)) {
+        continue;
+      }
+      
+      // Skip if it's part of a property access (after a dot)
+      const beforeIdentifier = line.substring(0, identifierMatch.index);
+      if (beforeIdentifier.endsWith('.')) {
+        continue;
+      }
+      
+      // Skip if it's a function call (followed by parentheses)
+      const afterIdentifier = line.substring(identifierMatch.index + identifier.length);
+      if (afterIdentifier.startsWith('(')) {
+        continue;
+      }
+      
+      // Skip if it's being declared on this line
+      if (line.includes(`var ${identifier}`) || line.includes(`let ${identifier}`) || line.includes(`const ${identifier}`) || line.includes(`function ${identifier}`)) {
+        continue;
+      }
+      
+      // Check if it's a standalone identifier that could be undefined
+      if (trimmedLine === identifier || line.match(new RegExp(`\\b${identifier}\\s*;?$`))) {
         diagnostics.push({
-          from,
+          from: identifierStart,
+          to: identifierEnd,
+          severity: 'error' as const,
+          message: `'${identifier}' is not defined`
+        });
+      }
+    }
+    
+    // Check for missing semicolons
+    if (trimmedLine && !trimmedLine.endsWith(';') && !trimmedLine.endsWith('{') && !trimmedLine.endsWith('}') && !trimmedLine.includes('//') && !trimmedLine.startsWith('if') && !trimmedLine.startsWith('for') && !trimmedLine.startsWith('while') && !trimmedLine.startsWith('function') && !trimmedLine.startsWith('class')) {
+      if (line.match(/\w+\s*=\s*\w+/) || line.match(/\w+\+\+/) || line.match(/\w+--/) || line.match(/\w+\s*\+=/) || line.match(/\w+\s*-=/)) {
+        diagnostics.push({
+          from: to - 1,
           to,
           severity: 'warning' as const,
-          message: 'Possible unmatched brackets or parentheses'
+          message: 'Missing semicolon'
         });
       }
     }
