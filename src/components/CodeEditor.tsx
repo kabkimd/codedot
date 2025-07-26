@@ -96,7 +96,7 @@ export const CodeEditor = ({
     { tag: tags.attributeValue, color: '#032f62' },
   ]);
 
-  const editorTheme = resolvedTheme === 'dark' ? oneDark : basicLight;
+  const editorTheme = oneDark; // Temporarily use dark theme to test syntax highlighting
 
   useEffect(() => {
     setValue(content);
