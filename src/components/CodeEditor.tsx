@@ -8,6 +8,7 @@ import { basicSetup } from '@uiw/codemirror-extensions-basic-setup';
 import { basicLight, basicDark } from '@uiw/codemirror-theme-basic';
 import { EditorView } from '@codemirror/view';
 import { search } from '@codemirror/search';
+import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
@@ -101,6 +102,8 @@ export const CodeEditor = ({
 
   const extensions = [
     basicSetup(),
+    editorTheme,
+    syntaxHighlighting(defaultHighlightStyle),
     ...getLanguageExtension(fileName),
     EditorView.theme({
       '&': {
@@ -151,9 +154,9 @@ export const CodeEditor = ({
             onDirtyChange?.(dirty);
             onContentChange?.(val);
           }}
-        theme={editorTheme}
-        extensions={extensions}
-        readOnly={readOnly}
+            extensions={extensions}
+            readOnly={readOnly}
+
           style={{
             height: '100%',
             fontSize: '14px',
