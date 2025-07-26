@@ -11,17 +11,75 @@ import { sql } from '@codemirror/lang-sql';
 import { php } from '@codemirror/lang-php';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { EditorView, keymap, highlightActiveLine, lineNumbers } from '@codemirror/view';
-import { EditorState } from '@codemirror/state';
+import { EditorState, Extension } from '@codemirror/state';
 import { search, searchKeymap } from '@codemirror/search';
-import { syntaxHighlighting, defaultHighlightStyle, bracketMatching } from '@codemirror/language';
+import { syntaxHighlighting, defaultHighlightStyle, bracketMatching, HighlightStyle } from '@codemirror/language';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
 import { linter, lintGutter } from '@codemirror/lint';
-import { tags } from '@lezer/highlight';
+import { tags as t } from '@lezer/highlight';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Save, Code2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+// Custom bright dark theme for better readability
+const brightDarkTheme = EditorView.theme({
+  '&': {
+    color: '#f8f8f2',
+    backgroundColor: '#1e1e1e',
+  },
+  '.cm-content': {
+    padding: '10px',
+    color: '#f8f8f2',
+    caretColor: '#f8f8f2'
+  },
+  '.cm-focused .cm-cursor': {
+    borderLeftColor: '#f8f8f2'
+  },
+  '.cm-selectionBackground, .cm-focused .cm-selectionBackground': {
+    backgroundColor: '#3a3a3a'
+  },
+  '.cm-activeLine': {
+    backgroundColor: '#2d2d2d'
+  },
+  '.cm-gutters': {
+    backgroundColor: '#252526',
+    color: '#858585',
+    border: 'none'
+  },
+  '.cm-activeLineGutter': {
+    backgroundColor: '#2d2d2d'
+  },
+  '.cm-lineNumbers .cm-gutterElement': {
+    color: '#858585'
+  },
+  '.cm-foldPlaceholder': {
+    backgroundColor: 'transparent',
+    border: 'none',
+    color: '#ddd'
+  }
+}, { dark: true });
+
+// Custom syntax highlighting for bright colors
+const brightHighlightStyle = HighlightStyle.define([
+  { tag: t.keyword, color: '#f92672' },
+  { tag: [t.name, t.deleted, t.character, t.propertyName, t.macroName], color: '#f8f8f2' },
+  { tag: [t.function(t.variableName), t.labelName], color: '#a6e22e' },
+  { tag: [t.color, t.constant(t.name), t.standard(t.name)], color: '#ae81ff' },
+  { tag: [t.definition(t.name), t.separator], color: '#f8f8f2' },
+  { tag: [t.typeName, t.className, t.number, t.changed, t.annotation, t.modifier, t.self, t.namespace], color: '#66d9ef' },
+  { tag: [t.operator, t.operatorKeyword, t.url, t.escape, t.regexp, t.link, t.special(t.string)], color: '#f92672' },
+  { tag: [t.meta, t.comment], color: '#75715e' },
+  { tag: t.strong, fontWeight: 'bold' },
+  { tag: t.emphasis, fontStyle: 'italic' },
+  { tag: t.strikethrough, textDecoration: 'line-through' },
+  { tag: t.link, color: '#f92672', textDecoration: 'underline' },
+  { tag: t.heading, fontWeight: 'bold', color: '#a6e22e' },
+  { tag: [t.atom, t.bool, t.special(t.variableName)], color: '#ae81ff' },
+  { tag: [t.processingInstruction, t.string, t.inserted], color: '#e6db74' },
+  { tag: t.invalid, color: '#f44747' },
+]);
 
 interface CodeEditorProps {
   content: string;
@@ -709,8 +767,8 @@ export const CodeEditor = ({
   const { toast } = useToast();
   const { resolvedTheme } = useTheme();
   
-  // Use theme based on app theme
-  const editorTheme = resolvedTheme === 'dark' ? oneDark : undefined;
+  // Use custom bright theme for dark mode, no theme for light mode
+  const editorTheme = resolvedTheme === 'dark' ? [brightDarkTheme] : undefined;
 
   useEffect(() => {
     setValue(content);
@@ -792,7 +850,8 @@ export const CodeEditor = ({
       ...historyKeymap,
       ...completionKeymap,
     ]),
-    syntaxHighlighting(defaultHighlightStyle),
+    // Use bright highlighting for dark mode, default for light mode
+    syntaxHighlighting(resolvedTheme === 'dark' ? brightHighlightStyle : defaultHighlightStyle),
     ...getLanguageExtension(fileName),
     search(),
   ];
