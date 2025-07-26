@@ -80,8 +80,8 @@ export const CodeEditor = ({
   const { toast } = useToast();
   const { resolvedTheme } = useTheme();
   
-  // Use oneDark theme
-  const editorTheme = oneDark;
+  // Use theme based on app theme
+  const editorTheme = resolvedTheme === 'dark' ? oneDark : undefined;
 
   useEffect(() => {
     setValue(content);
