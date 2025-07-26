@@ -4,9 +4,10 @@ import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
 import { json } from '@codemirror/lang-json';
-import { oneDark } from '@codemirror/theme-one-dark';
+import { basicLight, basicDark } from '@uiw/codemirror-theme-basic';
 import { EditorView } from '@codemirror/view';
 import { search } from '@codemirror/search';
+import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -58,6 +59,8 @@ export const CodeEditor = ({
   const [value, setValue] = useState(content);
   const [isDirty, setIsDirty] = useState(false);
   const { toast } = useToast();
+  const { resolvedTheme } = useTheme();
+  const editorTheme = resolvedTheme === 'dark' ? basicDark : basicLight;
 
   useEffect(() => {
     setValue(content);
@@ -144,10 +147,11 @@ export const CodeEditor = ({
             const dirty = val !== content;
             setIsDirty(dirty);
             onDirtyChange?.(dirty);
-            onContentChange?.(val);
-          }}
-          extensions={extensions}
-          readOnly={readOnly}
+          onContentChange?.(val);
+        }}
+        theme={editorTheme}
+        extensions={extensions}
+        readOnly={readOnly}
           style={{
             height: '100%',
             fontSize: '14px',
