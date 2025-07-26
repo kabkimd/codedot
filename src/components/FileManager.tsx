@@ -18,6 +18,7 @@ import { LogOut, User, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { fileAPI } from '@/lib/api';
+import { detectMimeType, isTextMime } from '@/lib/utils';
 
 interface FileManagerProps {
   username: string;
@@ -25,19 +26,11 @@ interface FileManagerProps {
 }
 
 
-const isEditableFile = (fileName: string): boolean => {
-  const extension = fileName.split('.').pop()?.toLowerCase();
-  const textExtensions = [
-    'txt', 'md', 'json', 'js', 'jsx', 'ts', 'tsx', 
-    'html', 'css', 'scss', 'py', 'java', 'cpp', 'c', 
-    'php', 'rb', 'go', 'rs', 'xml', 'yml', 'yaml'
-  ];
-  return textExtensions.includes(extension || '');
-};
 
 export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   const [fileSystem, setFileSystem] = useState<FileTreeNode[]>([]);
   const [selectedFile, setSelectedFile] = useState<string>('');
+  const [selectedMime, setSelectedMime] = useState<string>('');
   const [fileContent, setFileContent] = useState<string>('');
   const [currentContent, setCurrentContent] = useState<string>('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -86,20 +79,19 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
     }
     
     setSelectedFile(filePath);
+    setSelectedMime('');
     console.log('FileManager - selectedFile set to:', filePath);
     
-    const fileName = filePath.split('/').pop() || '';
-    const isEditable = isEditableFile(fileName);
-    
     try {
-      if (isEditable) {
-        // For text files, load as string
-        const text = await fileAPI.getFile(filePath);
+      const blob = await fileAPI.downloadItem(filePath);
+      const mime = await detectMimeType(blob);
+      setSelectedMime(mime);
+
+      if (isTextMime(mime)) {
+        const text = await blob.text();
         setFileContent(text);
         setCurrentContent(text);
       } else {
-        // For media files, create object URL from blob
-        const blob = await fileAPI.downloadItem(filePath);
         const objectUrl = URL.createObjectURL(blob);
         objectUrlRef.current = objectUrl;
         setFileContent(objectUrl);
@@ -110,6 +102,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
       console.error('Failed to load file', err);
       setFileContent('');
       setCurrentContent('');
+      setSelectedMime('');
       setHasUnsavedChanges(false);
     }
   };
@@ -277,7 +270,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   const displayPath = getDisplayPath(selectedFile);
   console.log('FileManager - selectedFile for display:', selectedFile);
   console.log('FileManager - displayPath result:', displayPath);
-  const isEditable = isEditableFile(selectedFileName);
+  const isEditable = isTextMime(selectedMime);
 
   return (
     <div className="h-screen flex flex-col bg-background">
@@ -353,8 +346,8 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
             ) : (
               <MediaPreview
                 fileName={displayPath}
-                filePath={selectedFile}
-                content={fileContent}
+                mimeType={selectedMime}
+                contentUrl={fileContent}
               />
             )
           ) : (
