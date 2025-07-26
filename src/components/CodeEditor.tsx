@@ -101,7 +101,7 @@ export const CodeEditor = ({
 
 
   const extensions = [
-    basicSetup(),
+    basicSetup,
     editorTheme,
     syntaxHighlighting(defaultHighlightStyle),
     ...getLanguageExtension(fileName),
