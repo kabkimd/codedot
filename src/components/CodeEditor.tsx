@@ -5,6 +5,10 @@ import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
+import { xml } from '@codemirror/lang-xml';
+import { yaml } from '@codemirror/lang-yaml';
+import { sql } from '@codemirror/lang-sql';
+import { php } from '@codemirror/lang-php';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { EditorView, keymap, highlightActiveLine, lineNumbers } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
@@ -88,6 +92,201 @@ const jsonLinter = linter((view) => {
   return diagnostics;
 });
 
+// HTML linter for basic syntax errors
+const htmlLinter = linter((view) => {
+  const doc = view.state.doc.toString();
+  const diagnostics = [];
+  
+  // Check for unclosed tags
+  const tagRegex = /<(\/?)\s*([a-zA-Z][a-zA-Z0-9]*)[^>]*>/g;
+  const openTags = [];
+  let match;
+  
+  while ((match = tagRegex.exec(doc)) !== null) {
+    const [fullMatch, isClosing, tagName] = match;
+    const from = match.index;
+    const to = match.index + fullMatch.length;
+    
+    if (isClosing === '/') {
+      if (openTags.length === 0 || openTags[openTags.length - 1].name !== tagName.toLowerCase()) {
+        diagnostics.push({
+          from,
+          to,
+          severity: 'error' as const,
+          message: `Unmatched closing tag: ${tagName}`
+        });
+      } else {
+        openTags.pop();
+      }
+    } else if (!['img', 'br', 'hr', 'input', 'meta', 'link'].includes(tagName.toLowerCase())) {
+      openTags.push({ name: tagName.toLowerCase(), from, to });
+    }
+  }
+  
+  // Check for unclosed tags
+  openTags.forEach(tag => {
+    diagnostics.push({
+      from: tag.from,
+      to: tag.to,
+      severity: 'warning' as const,
+      message: `Unclosed tag: ${tag.name}`
+    });
+  });
+  
+  return diagnostics;
+});
+
+// CSS linter for basic syntax errors
+const cssLinter = linter((view) => {
+  const doc = view.state.doc.toString();
+  const diagnostics = [];
+  
+  // Check for unmatched braces
+  let braceCount = 0;
+  let lastOpenBrace = -1;
+  
+  for (let i = 0; i < doc.length; i++) {
+    if (doc[i] === '{') {
+      braceCount++;
+      lastOpenBrace = i;
+    } else if (doc[i] === '}') {
+      braceCount--;
+      if (braceCount < 0) {
+        diagnostics.push({
+          from: i,
+          to: i + 1,
+          severity: 'error' as const,
+          message: 'Unmatched closing brace'
+        });
+        braceCount = 0;
+      }
+    }
+  }
+  
+  if (braceCount > 0 && lastOpenBrace >= 0) {
+    diagnostics.push({
+      from: lastOpenBrace,
+      to: lastOpenBrace + 1,
+      severity: 'warning' as const,
+      message: 'Unmatched opening brace'
+    });
+  }
+  
+  return diagnostics;
+});
+
+// YAML linter for basic syntax errors
+const yamlLinter = linter((view) => {
+  const doc = view.state.doc.toString();
+  const diagnostics = [];
+  
+  const lines = doc.split('\n');
+  lines.forEach((line, lineIndex) => {
+    const from = view.state.doc.line(lineIndex + 1).from;
+    const to = view.state.doc.line(lineIndex + 1).to;
+    
+    // Check for invalid indentation (tabs mixed with spaces)
+    if (line.includes('\t') && line.includes('  ')) {
+      diagnostics.push({
+        from,
+        to,
+        severity: 'warning' as const,
+        message: 'Mixed tabs and spaces in indentation'
+      });
+    }
+    
+    // Check for duplicate keys (basic check)
+    const colonIndex = line.indexOf(':');
+    if (colonIndex > 0) {
+      const key = line.substring(0, colonIndex).trim();
+      const restOfDoc = lines.slice(lineIndex + 1).join('\n');
+      if (restOfDoc.includes(`${key}:`)) {
+        diagnostics.push({
+          from,
+          to: from + colonIndex,
+          severity: 'warning' as const,
+          message: `Possible duplicate key: ${key}`
+        });
+      }
+    }
+  });
+  
+  return diagnostics;
+});
+
+// XML linter for basic syntax errors
+const xmlLinter = linter((view) => {
+  const doc = view.state.doc.toString();
+  const diagnostics = [];
+  
+  // Basic XML validation - check for well-formed tags
+  const tagRegex = /<(\/?)\s*([a-zA-Z][a-zA-Z0-9:-]*)[^>]*>/g;
+  const openTags = [];
+  let match;
+  
+  while ((match = tagRegex.exec(doc)) !== null) {
+    const [fullMatch, isClosing, tagName] = match;
+    const from = match.index;
+    const to = match.index + fullMatch.length;
+    
+    if (isClosing === '/') {
+      if (openTags.length === 0 || openTags[openTags.length - 1].name !== tagName) {
+        diagnostics.push({
+          from,
+          to,
+          severity: 'error' as const,
+          message: `Unmatched closing tag: ${tagName}`
+        });
+      } else {
+        openTags.pop();
+      }
+    } else if (!fullMatch.endsWith('/>')) {
+      openTags.push({ name: tagName, from, to });
+    }
+  }
+  
+  // Check for unclosed tags
+  openTags.forEach(tag => {
+    diagnostics.push({
+      from: tag.from,
+      to: tag.to,
+      severity: 'warning' as const,
+      message: `Unclosed XML tag: ${tag.name}`
+    });
+  });
+  
+  return diagnostics;
+});
+
+// CSV linter for basic format checking
+const csvLinter = linter((view) => {
+  const doc = view.state.doc.toString();
+  const diagnostics = [];
+  
+  const lines = doc.split('\n').filter(line => line.trim());
+  if (lines.length === 0) return diagnostics;
+  
+  // Get expected column count from first line
+  const firstLineColumns = lines[0].split(',').length;
+  
+  lines.forEach((line, lineIndex) => {
+    const from = view.state.doc.line(lineIndex + 1).from;
+    const to = view.state.doc.line(lineIndex + 1).to;
+    
+    const columns = line.split(',').length;
+    if (columns !== firstLineColumns) {
+      diagnostics.push({
+        from,
+        to,
+        severity: 'warning' as const,
+        message: `Inconsistent column count: expected ${firstLineColumns}, got ${columns}`
+      });
+    }
+  });
+  
+  return diagnostics;
+});
+
 // Simple JavaScript/TypeScript linter for basic syntax errors
 const jsLinter = linter((view) => {
   const doc = view.state.doc.toString();
@@ -132,16 +331,45 @@ const getLanguageExtension = (fileName: string) => {
       return [javascript({ jsx: true, typescript: extension.includes('ts') }), jsLinter];
     }
     case 'html':
-      return [html()];
+    case 'htm': {
+      return [html(), htmlLinter];
+    }
     case 'css':
     case 'scss':
-      return [css()];
+    case 'sass': {
+      return [css(), cssLinter];
+    }
     case 'json': {
       return [json(), jsonLinter];
     }
+    case 'xml':
+    case 'svg':
+    case 'xsl':
+    case 'xslt': {
+      return [xml(), xmlLinter];
+    }
+    case 'yaml':
+    case 'yml': {
+      return [yaml(), yamlLinter];
+    }
+    case 'csv':
+    case 'tsv': {
+      return [csvLinter]; // CSV doesn't have syntax highlighting, just linting
+    }
+    case 'sql': {
+      return [sql()];
+    }
+    case 'php': {
+      return [php()];
+    }
     case 'md':
-    case 'markdown':
+    case 'markdown': {
       return [markdown()];
+    }
+    case 'txt':
+    case 'log': {
+      return []; // Plain text, no syntax highlighting or linting
+    }
     default:
       return [];
   }
