@@ -218,6 +218,22 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   };
 
   const selectedFileName = selectedFile.split('/').pop() || '';
+  
+  // Create a user-friendly display path (remove absolute path prefix)
+  const getDisplayPath = (fullPath: string): string => {
+    if (!fullPath) return '';
+    const parts = fullPath.split('/');
+    // Find the username directory and show path relative to that
+    const userIndex = parts.findIndex(part => part === username);
+    if (userIndex !== -1 && userIndex < parts.length - 1) {
+      // Return path relative to user folder (exclude username from display)
+      return parts.slice(userIndex + 1).join('/');
+    }
+    // Fallback to just filename if user folder not found
+    return parts[parts.length - 1] || '';
+  };
+  
+  const displayPath = getDisplayPath(selectedFile);
   const isEditable = isEditableFile(selectedFileName);
 
   return (
@@ -265,7 +281,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
             isEditable ? (
               <CodeEditor
                 content={fileContent}
-                fileName={selectedFileName}
+                fileName={displayPath}
                 onSave={handleFileSave}
                 onContentChange={setCurrentContent}
                 onDirtyChange={setHasUnsavedChanges}
