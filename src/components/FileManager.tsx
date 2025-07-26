@@ -79,10 +79,23 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
     console.log('FileManager - loadFile called with:', filePath);
     setSelectedFile(filePath);
     console.log('FileManager - selectedFile set to:', filePath);
+    
+    const fileName = filePath.split('/').pop() || '';
+    const isEditable = isEditableFile(fileName);
+    
     try {
-      const text = await fileAPI.getFile(filePath);
-      setFileContent(text);
-      setCurrentContent(text);
+      if (isEditable) {
+        // For text files, load as string
+        const text = await fileAPI.getFile(filePath);
+        setFileContent(text);
+        setCurrentContent(text);
+      } else {
+        // For media files, create object URL from blob
+        const blob = await fileAPI.downloadItem(filePath);
+        const objectUrl = URL.createObjectURL(blob);
+        setFileContent(objectUrl);
+        setCurrentContent(objectUrl);
+      }
       setHasUnsavedChanges(false);
     } catch (err) {
       console.error('Failed to load file', err);
