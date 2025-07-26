@@ -57,3 +57,8 @@
 .cm-activeLine {
   background-color: #cceeff44;
 }
+
+/* Ensure syntax highlighting colors are preserved */
+.cm-content * {
+  color: inherit !important;
+}
