@@ -224,10 +224,14 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   // Create a user-friendly display path (remove absolute path prefix)
   const getDisplayPath = (fullPath: string): string => {
     if (!fullPath) return '';
-    const parts = fullPath.split('/');
+    
+    // Normalize path separators (handle both Windows \ and Unix /)
+    const normalizedPath = fullPath.replace(/\\/g, '/');
+    const parts = normalizedPath.split('/');
     
     // Debug logging
     console.log('Full path:', fullPath);
+    console.log('Normalized path:', normalizedPath);
     console.log('Username:', username);
     console.log('Path parts:', parts);
     
