@@ -149,9 +149,21 @@ export const CodeEditor = ({
       },
       '.cm-editor': {
         height: '100%',
+        // Force syntax highlighting colors to take precedence over global styles
+        color: 'unset !important',
       },
       '.cm-scroller': {
         fontFamily: 'JetBrains Mono, Consolas, Monaco, "Courier New", monospace',
+        // Ensure syntax highlighting isn't overridden by global text color
+        color: 'unset !important',
+      },
+      '.cm-content': {
+        // Reset any global text color inheritance
+        color: 'unset !important',
+      },
+      // Force syntax highlighting colors to work
+      '.cm-content *': {
+        color: 'unset !important',
       },
     }),
     search(),
