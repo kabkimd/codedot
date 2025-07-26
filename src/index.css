@@ -1,3 +1,5 @@
+@import '@uiw/react-codemirror/dist/codemirror.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
