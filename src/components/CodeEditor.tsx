@@ -287,7 +287,7 @@ const csvLinter = linter((view) => {
   return diagnostics;
 });
 
-// Enhanced JavaScript/TypeScript linter for common syntax and semantic errors
+// Comprehensive JavaScript/TypeScript linter for syntax and semantic errors
 const jsLinter = linter((view) => {
   const doc = view.state.doc.toString();
   const diagnostics = [];
@@ -330,18 +330,86 @@ const jsLinter = linter((view) => {
       return;
     }
     
-    // Check for unmatched brackets/braces
+    // Check for anonymous function declarations (not assignments)
+    if (trimmedLine.match(/^\s*function\s*\(\s*\)/)) {
+      diagnostics.push({
+        from,
+        to,
+        severity: 'error' as const,
+        message: 'Function declaration requires a name'
+      });
+    }
+    
+    // Check for invalid function syntax
+    if (trimmedLine.match(/function\s*\(\s*\)\s*$/)) {
+      diagnostics.push({
+        from,
+        to,
+        severity: 'error' as const,
+        message: 'Function declaration is missing body'
+      });
+    }
+    
+    // Check for unmatched brackets/braces/parentheses
     const openBrackets = (line.match(/\{/g) || []).length;
     const closeBrackets = (line.match(/\}/g) || []).length;
     const openParens = (line.match(/\(/g) || []).length;
     const closeParens = (line.match(/\)/g) || []).length;
+    const openSquare = (line.match(/\[/g) || []).length;
+    const closeSquare = (line.match(/\]/g) || []).length;
     
-    if (openBrackets - closeBrackets > 1 || openParens - closeParens > 1) {
+    if (openBrackets - closeBrackets > 1 || openParens - closeParens > 1 || openSquare - closeSquare > 1) {
       diagnostics.push({
         from,
         to,
         severity: 'warning' as const,
         message: 'Possible unmatched brackets or parentheses'
+      });
+    }
+    
+    // Check for trailing commas in objects/arrays (last element)
+    if (trimmedLine.match(/,\s*[}\]]/)) {
+      const commaIndex = line.lastIndexOf(',');
+      diagnostics.push({
+        from: from + commaIndex,
+        to: from + commaIndex + 1,
+        severity: 'warning' as const,
+        message: 'Trailing comma'
+      });
+    }
+    
+    // Check for assignment in conditional statements
+    if (trimmedLine.match(/if\s*\([^)]*=(?!=)[^)]*\)/)) {
+      diagnostics.push({
+        from,
+        to,
+        severity: 'warning' as const,
+        message: 'Assignment in conditional - did you mean === or == ?'
+      });
+    }
+    
+    // Check for == vs === (suggest strict equality)
+    if (trimmedLine.match(/[^=!<>]==[^=]/) || trimmedLine.match(/[^=!<>]!=[^=]/)) {
+      const eqIndex = line.indexOf('==');
+      const neqIndex = line.indexOf('!=');
+      const index = eqIndex !== -1 ? eqIndex : neqIndex;
+      if (index !== -1) {
+        diagnostics.push({
+          from: from + index,
+          to: from + index + 2,
+          severity: 'warning' as const,
+          message: 'Use === or !== for strict equality comparison'
+        });
+      }
+    }
+    
+    // Check for var usage (suggest let/const)
+    if (trimmedLine.match(/^\s*var\s+/)) {
+      diagnostics.push({
+        from,
+        to: from + trimmedLine.indexOf('var') + 3,
+        severity: 'warning' as const,
+        message: 'Use let or const instead of var'
       });
     }
     
@@ -386,9 +454,9 @@ const jsLinter = linter((view) => {
       }
     }
     
-    // Check for missing semicolons
-    if (trimmedLine && !trimmedLine.endsWith(';') && !trimmedLine.endsWith('{') && !trimmedLine.endsWith('}') && !trimmedLine.includes('//') && !trimmedLine.startsWith('if') && !trimmedLine.startsWith('for') && !trimmedLine.startsWith('while') && !trimmedLine.startsWith('function') && !trimmedLine.startsWith('class')) {
-      if (line.match(/\w+\s*=\s*\w+/) || line.match(/\w+\+\+/) || line.match(/\w+--/) || line.match(/\w+\s*\+=/) || line.match(/\w+\s*-=/)) {
+    // Check for missing semicolons on statements
+    if (trimmedLine && !trimmedLine.endsWith(';') && !trimmedLine.endsWith('{') && !trimmedLine.endsWith('}') && !trimmedLine.endsWith(',') && !trimmedLine.includes('//') && !trimmedLine.startsWith('if') && !trimmedLine.startsWith('for') && !trimmedLine.startsWith('while') && !trimmedLine.startsWith('function') && !trimmedLine.startsWith('class') && !trimmedLine.startsWith('else') && !trimmedLine.startsWith('try') && !trimmedLine.startsWith('catch') && !trimmedLine.startsWith('finally')) {
+      if (line.match(/\w+\s*=\s*\w+/) || line.match(/\w+\+\+/) || line.match(/\w+--/) || line.match(/\w+\s*\+=/) || line.match(/\w+\s*-=/) || line.match(/return\s+/) || line.match(/throw\s+/) || line.match(/break\s*$/) || line.match(/continue\s*$/)) {
         diagnostics.push({
           from: to - 1,
           to,
@@ -396,6 +464,53 @@ const jsLinter = linter((view) => {
           message: 'Missing semicolon'
         });
       }
+    }
+    
+    // Check for unreachable code after return/throw
+    if (trimmedLine.match(/^(return|throw)\b/) && lineIndex < lines.length - 1) {
+      const nextLine = lines[lineIndex + 1]?.trim();
+      if (nextLine && !nextLine.startsWith('}') && !nextLine.startsWith('//') && !nextLine.startsWith('/*')) {
+        const nextFrom = view.state.doc.line(lineIndex + 2).from;
+        const nextTo = view.state.doc.line(lineIndex + 2).to;
+        diagnostics.push({
+          from: nextFrom,
+          to: nextTo,
+          severity: 'warning' as const,
+          message: 'Unreachable code after return/throw'
+        });
+      }
+    }
+    
+    // Check for empty blocks
+    if (trimmedLine === '{}') {
+      diagnostics.push({
+        from,
+        to,
+        severity: 'warning' as const,
+        message: 'Empty block statement'
+      });
+    }
+    
+    // Check for console.log (suggest removing in production)
+    if (trimmedLine.includes('console.log')) {
+      const consoleIndex = line.indexOf('console.log');
+      diagnostics.push({
+        from: from + consoleIndex,
+        to: from + consoleIndex + 11,
+        severity: 'info' as const,
+        message: 'Consider removing console.log in production'
+      });
+    }
+    
+    // Check for debugger statements
+    if (trimmedLine.includes('debugger')) {
+      const debuggerIndex = line.indexOf('debugger');
+      diagnostics.push({
+        from: from + debuggerIndex,
+        to: from + debuggerIndex + 8,
+        severity: 'warning' as const,
+        message: 'Remove debugger statement before production'
+      });
     }
   });
   
