@@ -531,13 +531,16 @@ const jsLinter = linter((view) => {
         continue;
       }
       
-      // Skip if it's being declared on this line
-      if (line.includes(`var ${identifier}`) || line.includes(`let ${identifier}`) || line.includes(`const ${identifier}`) || line.includes(`function ${identifier}`)) {
+      // Skip if it's being declared on this line (more comprehensive check)
+      if (line.match(new RegExp(`\\b(?:var|let|const)\\s+${identifier}\\b`)) || 
+          line.match(new RegExp(`\\bfunction\\s+${identifier}\\b`)) ||
+          line.match(new RegExp(`\\b${identifier}\\s*=`)) ||
+          line.match(new RegExp(`\\bfor\\s*\\([^)]*\\b${identifier}\\b`))) {
         continue;
       }
       
-      // Check if it's a standalone identifier that could be undefined
-      if (trimmedLine === identifier || line.match(new RegExp(`\\b${identifier}\\s*;?$`))) {
+      // Check if it's a standalone identifier that could be undefined (only check standalone usage)
+      if (trimmedLine === identifier) {
         diagnostics.push({
           from: identifierStart,
           to: identifierEnd,
