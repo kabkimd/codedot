@@ -7,6 +7,7 @@ import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
 import { basicSetup } from '@codemirror/basic-setup';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { basicLight } from '@uiw/codemirror-theme-basic';
 import { EditorView } from '@codemirror/view';
 import { search } from '@codemirror/search';
 import { syntaxHighlighting, defaultHighlightStyle, HighlightStyle } from '@codemirror/language';
@@ -95,7 +96,7 @@ export const CodeEditor = ({
     { tag: tags.attributeValue, color: '#032f62' },
   ]);
 
-  const editorTheme = resolvedTheme === 'dark' ? oneDark : 'light';
+  const editorTheme = resolvedTheme === 'dark' ? oneDark : basicLight;
 
   useEffect(() => {
     setValue(content);
