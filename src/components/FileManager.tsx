@@ -267,9 +267,9 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
         </div>
         
         {/* Center - Editing link */}
-        <div className="flex-1 flex justify-center items-center">
+        <div className="flex-1 flex justify-center">
           <span className="text-base text-muted-foreground inline-flex items-center gap-1">
-            you are editing{' '}
+            hello, {username}, you are editing{' '}
             <a 
               href={`https://kabkimd.nl/${username}`}
               target="_blank" 
@@ -336,7 +336,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
               />
             )
           ) : (
-            <div className="h-full flex items-start justify-center text-muted-foreground pt-12">
+            <div className="h-full flex items-center justify-center text-muted-foreground">
               <p>Select a file to edit or preview</p>
             </div>
           )}
