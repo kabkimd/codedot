@@ -4,9 +4,9 @@ import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
 import { json } from '@codemirror/lang-json';
-import { oneDark } from '@codemirror/theme-one-dark';
 import { EditorView } from '@codemirror/view';
 import { search } from '@codemirror/search';
+import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -112,6 +112,7 @@ export const CodeEditor = ({
         fontFamily: 'JetBrains Mono, Consolas, Monaco, "Courier New", monospace',
       },
     }),
+    syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
     search(),
   ];
 
