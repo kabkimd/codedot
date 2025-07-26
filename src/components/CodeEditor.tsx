@@ -149,8 +149,8 @@ export const CodeEditor = ({
             const dirty = val !== content;
             setIsDirty(dirty);
             onDirtyChange?.(dirty);
-          onContentChange?.(val);
-        }}
+            onContentChange?.(val);
+          }}
         theme={editorTheme}
         extensions={extensions}
         readOnly={readOnly}
