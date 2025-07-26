@@ -20,7 +20,7 @@ import { linter, lintGutter } from '@codemirror/lint';
 import { tags } from '@lezer/highlight';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
-import { Save } from 'lucide-react';
+import { Save, Code2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface CodeEditorProps {
@@ -807,15 +807,26 @@ export const CodeEditor = ({
         </div>
         <div className="flex items-center space-x-2">
           {!readOnly && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleSave}
-              disabled={!isDirty}
-            >
-              <Save size={14} className="mr-1" />
-              Save
-            </Button>
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleFormat}
+                title="Format document (Ctrl+Shift+F)"
+              >
+                <Code2 size={14} className="mr-1" />
+                Format
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleSave}
+                disabled={!isDirty}
+              >
+                <Save size={14} className="mr-1" />
+                Save
+              </Button>
+            </>
           )}
         </div>
       </div>

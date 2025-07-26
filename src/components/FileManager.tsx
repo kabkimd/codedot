@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { FileTree, FileTreeNode } from './FileTree';
 import { CodeEditor } from './CodeEditor';
 import { MediaPreview } from './MediaPreview';
+import { ScrollingText } from './ScrollingText';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './ThemeToggle';
 import {
@@ -13,7 +14,7 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { fileAPI } from '@/lib/api';
@@ -260,8 +261,26 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
       <div className="h-12 flex items-center justify-between px-4 border-b border-border bg-muted/20">
-        <h1 className="text-lg font-medium">File Manager - {username}</h1>
-        <div className="flex gap-2">
+        {/* Left side - Scrolling text */}
+        <div className="flex-1 max-w-xs">
+          <ScrollingText />
+        </div>
+        
+        {/* Center - Editing link */}
+        <div className="flex-1 flex justify-center">
+          <a 
+            href={`https://kabkimd.nl/${username}`}
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors relative inline-flex items-center gap-1"
+          >
+            you are editing kabkimd.nl/{username}
+            <ExternalLink size={12} className="opacity-60" />
+          </a>
+        </div>
+        
+        {/* Right side - Controls */}
+        <div className="flex-1 flex justify-end gap-2">
           <ThemeToggle />
           <Button asChild variant="outline" size="sm">
             <Link to="/profile">
