@@ -44,6 +44,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const [usage, setUsage] = useState<{ used: number; max: number }>({ used: 0, max: 250 * 1024 * 1024 });
   const pendingFileRef = useRef<string | null>(null);
+  const objectUrlRef = useRef<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -77,6 +78,13 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
 
   const loadFile = async (filePath: string) => {
     console.log('FileManager - loadFile called with:', filePath);
+    
+    // Clean up previous object URL
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
+    
     setSelectedFile(filePath);
     console.log('FileManager - selectedFile set to:', filePath);
     
@@ -93,6 +101,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
         // For media files, create object URL from blob
         const blob = await fileAPI.downloadItem(filePath);
         const objectUrl = URL.createObjectURL(blob);
+        objectUrlRef.current = objectUrl;
         setFileContent(objectUrl);
         setCurrentContent(objectUrl);
       }
@@ -343,7 +352,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
               />
             ) : (
               <MediaPreview
-                fileName={selectedFileName}
+                fileName={displayPath}
                 filePath={selectedFile}
                 content={fileContent}
               />
