@@ -1,6 +1,10 @@
+import { isLovableEnvironment } from './environment';
+import { supabaseAuthAPI, supabaseUserAPI, supabaseFileAPI } from './api-supabase';
+
 const API_BASE = '/api';
 
-export const authAPI = {
+// Express API (for local development)
+const expressAuthAPI = {
   login: async (username: string, password: string) => {
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
@@ -12,7 +16,19 @@ export const authAPI = {
   }
 };
 
-export const userAPI = {
+// Environment-aware API
+export const authAPI = {
+  login: async (username: string, password: string) => {
+    if (isLovableEnvironment()) {
+      return supabaseAuthAPI.login(username, password);
+    } else {
+      return expressAuthAPI.login(username, password);
+    }
+  }
+};
+
+// Express user API (for local development)
+const expressUserAPI = {
   getCurrent: async () => {
     const res = await fetch(`${API_BASE}/user`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -31,6 +47,23 @@ export const userAPI = {
     });
     if (!res.ok) throw new Error('Failed to update profile');
     return res.json();
+  }
+};
+
+export const userAPI = {
+  getCurrent: async () => {
+    if (isLovableEnvironment()) {
+      return supabaseUserAPI.getCurrent();
+    } else {
+      return expressUserAPI.getCurrent();
+    }
+  },
+  update: async (data: Record<string, unknown>) => {
+    if (isLovableEnvironment()) {
+      return supabaseUserAPI.update(data);
+    } else {
+      return expressUserAPI.update(data);
+    }
   }
 };
 
@@ -56,7 +89,8 @@ export function clearToken() {
   }
 }
 
-export const fileAPI = {
+// Express file API (for local development)
+const expressFileAPI = {
   getTree: async () => {
     const res = await fetch(`${API_BASE}/tree`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -164,5 +198,85 @@ export const fileAPI = {
     });
     if (!res.ok) throw new Error('Failed to download');
     return res.blob();
+  }
+};
+
+export const fileAPI = {
+  getTree: async () => {
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.getTree();
+    } else {
+      return expressFileAPI.getTree();
+    }
+  },
+  getUsage: async () => {
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.getUsage();
+    } else {
+      return expressFileAPI.getUsage();
+    }
+  },
+  getFile: async (path: string) => {
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.getFile(path);
+    } else {
+      return expressFileAPI.getFile(path);
+    }
+  },
+  saveFile: async (path: string, content: string) => {
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.saveFile(path, content);
+    } else {
+      return expressFileAPI.saveFile(path, content);
+    }
+  },
+  createFile: async (parent: string, name: string) => {
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.createFile(parent, name);
+    } else {
+      return expressFileAPI.createFile(parent, name);
+    }
+  },
+  createFolder: async (parent: string, name: string) => {
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.createFolder(parent, name);
+    } else {
+      return expressFileAPI.createFolder(parent, name);
+    }
+  },
+  deleteItem: async (path: string) => {
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.deleteItem(path);
+    } else {
+      return expressFileAPI.deleteItem(path);
+    }
+  },
+  renameItem: async (path: string, newName: string) => {
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.renameItem(path, newName);
+    } else {
+      return expressFileAPI.renameItem(path, newName);
+    }
+  },
+  uploadFiles: async (parent: string, files: FileList) => {
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.uploadFiles(parent, files);
+    } else {
+      return expressFileAPI.uploadFiles(parent, files);
+    }
+  },
+  moveItem: async (path: string, target: string) => {
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.moveItem(path, target);
+    } else {
+      return expressFileAPI.moveItem(path, target);
+    }
+  },
+  downloadItem: async (path: string) => {
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.downloadItem(path);
+    } else {
+      return expressFileAPI.downloadItem(path);
+    }
   }
 };
