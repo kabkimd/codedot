@@ -36,34 +36,24 @@ interface CodeEditorProps {
 const getLanguageExtension = (fileName: string) => {
   const extension = fileName.split('.').pop()?.toLowerCase();
   
-  // Add console.log to debug language detection
-  console.log('CodeEditor - File:', fileName, 'Extension:', extension);
-  
   switch (extension) {
     case 'js':
     case 'jsx':
     case 'ts':
     case 'tsx': {
-      const jsExt = [javascript({ jsx: true, typescript: extension.includes('ts') })];
-      console.log('CodeEditor - Using JavaScript extension:', jsExt);
-      return jsExt;
+      return [javascript({ jsx: true, typescript: extension.includes('ts') })];
     }
     case 'html':
-      console.log('CodeEditor - Using HTML extension');
       return [html()];
     case 'css':
     case 'scss':
-      console.log('CodeEditor - Using CSS extension');
       return [css()];
     case 'json':
-      console.log('CodeEditor - Using JSON extension');
       return [json()];
     case 'md':
     case 'markdown':
-      console.log('CodeEditor - Using Markdown extension');
       return [markdown()];
     default:
-      console.log('CodeEditor - No language extension found');
       return [];
   }
 };
@@ -137,10 +127,6 @@ export const CodeEditor = ({
     search(),
   ];
 
-  // Debug: Log all extensions
-  console.log('CodeEditor - All extensions:', extensions);
-  console.log('CodeEditor - Theme:', editorTheme);
-  console.log('CodeEditor - FileName:', fileName);
 
   return (
     <div className="h-full flex flex-col bg-background">
