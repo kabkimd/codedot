@@ -1,0 +1,514 @@
+[
+  {
+    "username": "leo",
+    "full_name": "Leo Scarin",
+    "email": "l.scarin@kabk.nl",
+    "password": "$2b$10$SqHVP.OyoyYw3BXPtM/iuuHnj20AkKBbUI4jLF/4Pir0I7Za/PdjC",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "lilith",
+    "full_name": "Lilith Aleksandrowicz",
+    "email": "3612333@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "alex",
+    "full_name": "Alex van Amerongen",
+    "email": "3565890@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "abi",
+    "full_name": "Abi van Dam",
+    "email": "3657760@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "inho",
+    "full_name": "Inho Jeon",
+    "email": "3646157@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "floris",
+    "full_name": "Floris van Leeuwen",
+    "email": "3628396@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "eliasz",
+    "full_name": "Eliasz Korabiowski",
+    "email": "3516601@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "emma",
+    "full_name": "Emma Soave",
+    "email": "3637441@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "kaloyan",
+    "full_name": "Kaloyan Reau",
+    "email": "3654060@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "ipek",
+    "full_name": "Ipek Usman",
+    "email": "3632024@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "joyce",
+    "full_name": "Joyce Bing",
+    "email": "3662349@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "noor",
+    "full_name": "Noor Tabatabaie",
+    "email": "3635643@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "patricia",
+    "full_name": "Patricia Saez De Prado",
+    "email": "3641902@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "siddharta",
+    "full_name": "Siddharta van der Sluis",
+    "email": "3642143@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "hester",
+    "full_name": "Hester Sjoers",
+    "email": "3534758@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "meryt",
+    "full_name": "Meryt Ghaly",
+    "email": "3567346@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "wojciech",
+    "full_name": "Wojciech Polak",
+    "email": "3668495@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "hasse",
+    "full_name": "Hasse Visser",
+    "email": "3613682@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "sokratis",
+    "full_name": "Sokratis Anastasiou",
+    "email": "3560074@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "daria",
+    "full_name": "Daria Mashkantseva",
+    "email": "3560538@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "tom",
+    "full_name": "Tom Gawlinski",
+    "email": "3545431@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "jore",
+    "full_name": "Jore Raudonikyte",
+    "email": "3607712@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "esra",
+    "full_name": "Esra Gundem",
+    "email": "3583864@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
+    "username": "loes",
+    "full_name": "Loes Versteeg",
+    "email": "3328007@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 2,
+    "isPublic": false
+  },
+  {
+    "username": "minjae",
+    "full_name": "Minjae Kim",
+    "email": "3563367@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 2,
+    "isPublic": false
+  },
+  {
+    "username": "tamas",
+    "full_name": "Tamas Vass",
+    "email": "3568903@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 2,
+    "isPublic": false
+  },
+  {
+    "username": "daniella",
+    "full_name": "Daniella Danielsen",
+    "email": "3543099@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 2,
+    "isPublic": false
+  },
+  {
+    "username": "audrey",
+    "full_name": "Audrey Ljubenovic",
+    "email": "3580008@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 2,
+    "isPublic": false
+  },
+  {
+    "username": "anabel",
+    "full_name": "Anabel Vasquez Cedre",
+    "email": "3602052@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 2,
+    "isPublic": false
+  },
+  {
+    "username": "teo",
+    "full_name": "Téo Amedome",
+    "email": "3596206@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 2,
+    "isPublic": false
+  },
+  {
+    "username": "vanessa",
+    "full_name": "Vanessa Amorim Ramos",
+    "email": "3607119@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 2,
+    "isPublic": false
+  },
+  {
+    "username": "tijmen",
+    "full_name": "Tijmen Luisman",
+    "email": "3493911@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 2,
+    "isPublic": false
+  },
+  {
+    "username": "sterre",
+    "full_name": "Sterre Pakkert",
+    "email": "3511731@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 2,
+    "isPublic": false
+  },
+  {
+    "username": "valea",
+    "full_name": "Valea Huppmann",
+    "email": "3517659@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 2,
+    "isPublic": false
+  },
+  {
+    "username": "yan",
+    "full_name": "Yan Abadjiev",
+    "email": "3610217@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 2,
+    "isPublic": false
+  },
+  {
+    "username": "luka",
+    "full_name": "Luka Boduljak",
+    "email": "3612376@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 2,
+    "isPublic": false
+  },
+  {
+    "username": "hyeonseo",
+    "full_name": "Hyeonseo Lim",
+    "email": "3571270@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 2,
+    "isPublic": false
+  },
+  {
+    "username": "jet",
+    "full_name": "Jet Jiang",
+    "email": "3607445@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 2,
+    "isPublic": false
+  },
+  {
+    "username": "jelena",
+    "full_name": "Jelena Rocco",
+    "email": "3456544@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 2,
+    "isPublic": false
+  },
+  {
+    "username": "shruti",
+    "full_name": "Shruti Batra",
+    "email": "3668207@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 2,
+    "isPublic": false
+  },
+  {
+    "username": "auke",
+    "full_name": "Auke Rothfusz",
+    "email": "3400212@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 3,
+    "isPublic": false
+  },
+  {
+    "username": "ingrid",
+    "full_name": "Ingrid Costan",
+    "email": "3511936@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 3,
+    "isPublic": false
+  },
+  {
+    "username": "yasamin",
+    "full_name": "Yasamin Zeinalizadeh Rafsanjanipour",
+    "email": "3512967@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 3,
+    "isPublic": false
+  },
+  {
+    "username": "milos",
+    "full_name": "Milos de Wit",
+    "email": "3537722@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 3,
+    "isPublic": false
+  },
+  {
+    "username": "alice",
+    "full_name": "Alice González",
+    "email": "3411478@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 3,
+    "isPublic": false
+  },
+  {
+    "username": "emia",
+    "full_name": "Emia Mäenpää",
+    "email": "3433404@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 3,
+    "isPublic": false
+  },
+  {
+    "username": "rubing",
+    "full_name": "Rubing Dong",
+    "email": "3537498@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 3,
+    "isPublic": false
+  },
+  {
+    "username": "suyeon",
+    "full_name": "Suyeon Jung",
+    "email": "3538060@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 3,
+    "isPublic": false
+  },
+  {
+    "username": "haryn",
+    "full_name": "Haryn Jeon",
+    "email": "3520277@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 3,
+    "isPublic": false
+  },
+  {
+    "username": "braidon",
+    "full_name": "Braidon Hobzek",
+    "email": "3487040@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 3,
+    "isPublic": false
+  },
+  {
+    "username": "gizem",
+    "full_name": "Gizem Yashar",
+    "email": "3554899@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 3,
+    "isPublic": false
+  },
+  {
+    "username": "iva",
+    "full_name": "Iva Balabanova",
+    "email": "3411729@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 3,
+    "isPublic": false
+  },
+  {
+    "username": "paulius",
+    "full_name": "Paulius Mikalajūnas",
+    "email": "3544427@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 3,
+    "isPublic": false
+  },
+  {
+    "username": "ghost",
+    "full_name": "Ghost Qiao",
+    "email": "3526437@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 3,
+    "isPublic": false
+  },
+  {
+    "username": "ye-ni",
+    "full_name": "Ye Ni Jeong",
+    "email": "3419509@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 4,
+    "isPublic": false
+  },
+  {
+    "username": "milla",
+    "full_name": "Milla Zeitvogel",
+    "email": "3435903@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 4,
+    "isPublic": false
+  },
+  {
+    "username": "maja",
+    "full_name": "Maja Mikulska",
+    "email": "3433579@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 4,
+    "isPublic": false
+  },
+  {
+    "username": "beverly",
+    "full_name": "Beverly Lau",
+    "email": "3408884@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 4,
+    "isPublic": false
+  },
+  {
+    "username": "olesya",
+    "full_name": "Olesya Lakshtanova",
+    "email": "3389014@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 4,
+    "isPublic": false
+  },
+  {
+    "username": "thijs",
+    "full_name": "Thijs 't Hart",
+    "email": "3343057@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 4,
+    "isPublic": false
+  },
+  {
+    "username": "mads",
+    "full_name": "Mads Rosairus",
+    "email": "3457818@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 4,
+    "isPublic": false
+  },
+  {
+    "username": "irja",
+    "full_name": "Irja Linnerud",
+    "email": "3287602@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 4,
+    "isPublic": false
+  },
+  {
+    "username": "basia",
+    "full_name": "Basia Jagiello",
+    "email": "3304957@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 4,
+    "isPublic": false
+  },
+  {
+    "username": "alex-s",
+    "full_name": "Alex Sigmarsson",
+    "email": "3548503@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 4,
+    "isPublic": false
+  }
+]
