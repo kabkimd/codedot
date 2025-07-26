@@ -6,6 +6,15 @@
 All colors MUST be HSL.
 */
 
+/* Custom font imports */
+@font-face {
+  font-family: 'Cotham Sans';
+  src: url('/fonts/CothamSans.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   :root {
     /* Minimal black on white theme */
@@ -98,6 +107,9 @@ All colors MUST be HSL.
 }
 
 @layer base {
+  * {
+    font-family: 'Cotham Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
 
   body {
     @apply bg-background text-foreground;
