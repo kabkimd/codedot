@@ -5,7 +5,8 @@ import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
 import { json } from '@codemirror/lang-json';
 import { basicSetup } from '@codemirror/basic-setup';
-import { basicLight, basicDark } from '@uiw/codemirror-theme-basic';
+import { basicLight } from '@uiw/codemirror-theme-basic';
+import { oneDark } from '@codemirror/theme-one-dark';
 import { EditorView } from '@codemirror/view';
 import { search } from '@codemirror/search';
 import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language';
@@ -62,7 +63,7 @@ export const CodeEditor = ({
   const [isDirty, setIsDirty] = useState(false);
   const { toast } = useToast();
   const { resolvedTheme } = useTheme();
-  const editorTheme = resolvedTheme === 'dark' ? basicDark : basicLight;
+  const editorTheme = resolvedTheme === 'dark' ? oneDark : basicLight;
 
   useEffect(() => {
     setValue(content);
