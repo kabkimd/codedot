@@ -22,6 +22,11 @@ import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import prettier from 'prettier/standalone';
+import parserBabel from 'prettier/parser-babel';
+import parserHtml from 'prettier/parser-html';
+import parserCss from 'prettier/parser-postcss';
+import parserMarkdown from 'prettier/parser-markdown';
 
 interface CodeEditorProps {
   content: string;
@@ -517,6 +522,70 @@ const jsLinter = linter((view) => {
   return diagnostics;
 });
 
+// Format document using Prettier
+const formatDocument = async (content: string, fileName: string): Promise<string> => {
+  const extension = fileName.split('.').pop()?.toLowerCase();
+  
+  try {
+    switch (extension) {
+      case 'js':
+      case 'jsx':
+      case 'ts':
+      case 'tsx':
+        return await prettier.format(content, {
+          parser: 'babel-ts',
+          plugins: [parserBabel],
+          semi: true,
+          singleQuote: true,
+          tabWidth: 2,
+          trailingComma: 'es5',
+        });
+      
+      case 'json':
+        return await prettier.format(content, {
+          parser: 'json',
+          plugins: [parserBabel],
+          tabWidth: 2,
+        });
+      
+      case 'html':
+      case 'htm':
+        return await prettier.format(content, {
+          parser: 'html',
+          plugins: [parserHtml],
+          tabWidth: 2,
+          htmlWhitespaceSensitivity: 'css',
+        });
+      
+      case 'css':
+      case 'scss':
+      case 'sass':
+        return await prettier.format(content, {
+          parser: 'css',
+          plugins: [parserCss],
+          tabWidth: 2,
+        });
+      
+      case 'md':
+      case 'markdown':
+        return await prettier.format(content, {
+          parser: 'markdown',
+          plugins: [parserMarkdown],
+          tabWidth: 2,
+          proseWrap: 'preserve',
+        });
+      
+      default:
+        // For unsupported file types, return original content
+        return content;
+    }
+  } catch (error) {
+    console.error('Formatting error:', error);
+    // Return original content if formatting fails
+    return content;
+  }
+};
+
 const getLanguageExtension = (fileName: string) => {
   const extension = fileName.split('.').pop()?.toLowerCase();
   
@@ -605,7 +674,33 @@ export const CodeEditor = ({
     });
   }, [onSave, value, onDirtyChange, fileName, toast]);
 
-  // Save file with Ctrl+S / Cmd+S
+  const handleFormat = useCallback(async () => {
+    if (readOnly) return;
+    
+    try {
+      const formattedContent = await formatDocument(value, fileName);
+      if (formattedContent !== value) {
+        setValue(formattedContent);
+        const dirty = formattedContent !== content;
+        setIsDirty(dirty);
+        onDirtyChange?.(dirty);
+        onContentChange?.(formattedContent);
+        
+        toast({
+          title: "Document formatted",
+          description: `${fileName} has been formatted successfully.`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Formatting failed",
+        description: "Could not format the document. Please check for syntax errors.",
+        variant: "destructive",
+      });
+    }
+  }, [value, fileName, content, readOnly, onDirtyChange, onContentChange, toast]);
+
+  // Save file with Ctrl+S / Cmd+S and format with Ctrl+Shift+F / Cmd+Shift+F
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
@@ -613,9 +708,14 @@ export const CodeEditor = ({
         if (!readOnly && isDirty) {
           handleSave();
         }
+      } else if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === 'f') {
+        event.preventDefault();
+        if (!readOnly) {
+          handleFormat();
+        }
       }
     },
-    [handleSave, readOnly, isDirty]
+    [handleSave, handleFormat, readOnly, isDirty]
   );
 
   useEffect(() => {
