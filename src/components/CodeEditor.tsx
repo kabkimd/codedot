@@ -34,7 +34,7 @@ interface CodeEditorProps {
   readOnly?: boolean;
 }
 
-// Simple JSON linter
+// Enhanced JSON linter
 const jsonLinter = linter((view) => {
   const doc = view.state.doc.toString();
   const diagnostics = [];
@@ -43,25 +43,45 @@ const jsonLinter = linter((view) => {
     JSON.parse(doc);
   } catch (error) {
     if (error instanceof SyntaxError) {
-      // Try to extract line/column from error message
-      const match = error.message.match(/at position (\d+)/);
-      if (match) {
-        const pos = parseInt(match[1]);
-        diagnostics.push({
-          from: pos,
-          to: pos + 1,
-          severity: 'error' as const,
-          message: error.message
-        });
+      let from = 0;
+      let to = 1;
+      
+      // Try to extract position from error message
+      const posMatch = error.message.match(/at position (\d+)/);
+      if (posMatch) {
+        const charPos = parseInt(posMatch[1]);
+        // Ensure position is within document bounds
+        if (charPos >= 0 && charPos < doc.length) {
+          from = charPos;
+          to = Math.min(charPos + 1, doc.length);
+        }
       } else {
-        // Fallback to highlighting the entire document
-        diagnostics.push({
-          from: 0,
-          to: doc.length,
-          severity: 'error' as const,
-          message: error.message
-        });
+        // Try to find line/column info in error message
+        const lineMatch = error.message.match(/line (\d+)/);
+        if (lineMatch) {
+          const lineNum = parseInt(lineMatch[1]);
+          try {
+            const line = view.state.doc.line(lineNum);
+            from = line.from;
+            to = line.to;
+          } catch {
+            // Line doesn't exist, highlight at end of document
+            from = Math.max(0, doc.length - 1);
+            to = doc.length;
+          }
+        } else {
+          // Fallback: highlight the last few characters where error likely occurs
+          from = Math.max(0, doc.length - 10);
+          to = doc.length;
+        }
       }
+      
+      diagnostics.push({
+        from,
+        to,
+        severity: 'error' as const,
+        message: `JSON Error: ${error.message}`
+      });
     }
   }
   
