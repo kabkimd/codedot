@@ -26,6 +26,8 @@ export default defineConfig(({ mode }) => ({
       "@codemirror/view",
       "@codemirror/language",
       "@codemirror/commands",
+      "@codemirror/autocomplete",
+      "@codemirror/lint",
       "@codemirror/search",
     ],
   },
