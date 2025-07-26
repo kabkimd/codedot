@@ -69,6 +69,19 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
     }
   };
 
+  // Helper function to detect if a file should be treated as text based on extension
+  const isTextFile = (filePath: string): boolean => {
+    const textExtensions = [
+      '.txt', '.md', '.json', '.js', '.ts', '.jsx', '.tsx', '.css', '.scss', 
+      '.html', '.htm', '.xml', '.svg', '.csv', '.yaml', '.yml', '.ini', 
+      '.conf', '.config', '.log', '.sql', '.py', '.java', '.c', '.cpp', 
+      '.h', '.hpp', '.php', '.rb', '.go', '.rs', '.sh', '.bat', '.ps1'
+    ];
+    
+    const extension = filePath.toLowerCase().substring(filePath.lastIndexOf('.'));
+    return textExtensions.includes(extension);
+  };
+
   const loadFile = async (filePath: string) => {
     console.log('FileManager - loadFile called with:', filePath);
     
@@ -83,15 +96,22 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
     console.log('FileManager - selectedFile set to:', filePath);
     
     try {
-      const blob = await fileAPI.downloadItem(filePath);
-      const mime = await detectMimeType(blob);
-      setSelectedMime(mime);
-
-      if (isTextMime(mime)) {
-        const text = await blob.text();
+      // Check if this is a text file based on extension
+      if (isTextFile(filePath)) {
+        // Use direct text API for text files
+        const text = await fileAPI.getFile(filePath);
+        const blob = new Blob([text], { type: 'text/plain' });
+        const mime = await detectMimeType(blob);
+        
+        setSelectedMime(mime);
         setFileContent(text);
         setCurrentContent(text);
       } else {
+        // Use blob API for binary/media files
+        const blob = await fileAPI.downloadItem(filePath);
+        const mime = await detectMimeType(blob);
+        setSelectedMime(mime);
+
         const objectUrl = URL.createObjectURL(blob);
         objectUrlRef.current = objectUrl;
         setFileContent(objectUrl);
