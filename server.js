@@ -11,13 +11,50 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const SECRET = process.env.JWT_SECRET || 'secret-key';
 
-// Load users from users.json
+// Users data and initialization
 const USERS_PATH = path.resolve(process.cwd(), 'users.json');
 let USERS = [];
-try {
-  USERS = JSON.parse(await fs.readFile(USERS_PATH, 'utf8'));
-} catch (e) {
-  console.error('Failed to load users.json', e);
+let isServerReady = false;
+
+async function initializeServer() {
+  console.log('🚀 Starting server initialization...');
+  
+  try {
+    // Load users from users.json
+    console.log('📖 Loading users.json...');
+    const usersData = await fs.readFile(USERS_PATH, 'utf8');
+    USERS = JSON.parse(usersData);
+    console.log(`✅ Loaded ${USERS.length} users from users.json`);
+    
+    // Ensure user directories exist
+    console.log('📁 Checking user directories...');
+    for (const user of USERS) {
+      const userDirPath = userDir(user.username);
+      try {
+        await fs.access(userDirPath);
+        console.log(`✅ User directory exists: ${user.username}`);
+      } catch (e) {
+        console.log(`📁 Creating user directory: ${user.username}`);
+        await fs.mkdir(userDirPath, { recursive: true });
+      }
+    }
+    
+    isServerReady = true;
+    console.log('🎉 Server initialization complete!');
+    return true;
+  } catch (error) {
+    console.error('❌ Failed to initialize server:', error);
+    console.error('Stack trace:', error.stack);
+    return false;
+  }
+}
+
+function serverReadyMiddleware(req, res, next) {
+  if (!isServerReady) {
+    console.log('⚠️ Request received before server ready:', req.method, req.path);
+    return res.status(503).json({ error: 'Server is still initializing, please try again in a moment' });
+  }
+  next();
 }
 
 function getUser(username) {
@@ -51,19 +88,39 @@ async function getDirectorySize(dir) {
   return sizes.reduce((a, b) => a + b, 0);
 }
 
-app.post('/api/auth/login', async (req, res) => {
-  const { username, password } = req.body || {};
-  const usernameLc = (username || '').toLowerCase();
-  const user = getUser(usernameLc);
-  if (!user) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+app.post('/api/auth/login', serverReadyMiddleware, async (req, res) => {
+  try {
+    console.log('🔐 Login attempt for:', req.body?.username);
+    const { username, password } = req.body || {};
+    
+    if (!username || !password) {
+      console.log('❌ Missing username or password');
+      return res.status(400).json({ error: 'Username and password required' });
+    }
+    
+    const usernameLc = username.toLowerCase();
+    const user = getUser(usernameLc);
+    
+    if (!user) {
+      console.log('❌ User not found:', usernameLc);
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    console.log('🔍 Checking password for user:', usernameLc);
+    const match = await bcrypt.compare(password, user.password);
+    
+    if (!match) {
+      console.log('❌ Password mismatch for user:', usernameLc);
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    const token = jwt.sign({ username: usernameLc }, SECRET);
+    console.log('✅ Login successful for user:', usernameLc);
+    res.json({ user: { username: usernameLc }, token });
+  } catch (error) {
+    console.error('❌ Login error:', error);
+    res.status(500).json({ error: 'Internal server error during login' });
   }
-  const match = await bcrypt.compare(password, user.password);
-  if (!match) {
-    return res.status(401).json({ error: 'Invalid credentials' });
-  }
-  const token = jwt.sign({ username: usernameLc }, SECRET);
-  res.json({ user: { username: usernameLc }, token });
 });
 
 app.get('/api/user', authMiddleware, async (req, res) => {
@@ -397,6 +454,23 @@ app.get('/api/download', authMiddleware, async (req, res) => {
 });
 
 
-app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
+// Initialize server and start listening
+async function startServer() {
+  const initialized = await initializeServer();
+  
+  if (!initialized) {
+    console.error('❌ Server initialization failed, exiting...');
+    process.exit(1);
+  }
+  
+  app.listen(PORT, () => {
+    console.log(`🌟 Server ready and listening on http://localhost:${PORT}`);
+    console.log(`📊 Total users loaded: ${USERS.length}`);
+    console.log(`🔑 Using JWT secret: ${SECRET.slice(0, 10)}...`);
+  });
+}
+
+startServer().catch(error => {
+  console.error('❌ Failed to start server:', error);
+  process.exit(1);
 });
