@@ -89,7 +89,7 @@ export const FileTree = ({
     if (nodes.length > 0 && expandedNodes.size === 0) {
       setExpandedNodes(new Set([nodes[0].path]));
     }
-  }, [nodes]);
+  }, [nodes, expandedNodes.size]);
 
   const toggleExpanded = (path: string) => {
     const newExpanded = new Set(expandedNodes);

@@ -43,10 +43,11 @@ const getLanguageExtension = (fileName: string) => {
     case 'js':
     case 'jsx':
     case 'ts':
-    case 'tsx':
+    case 'tsx': {
       const jsExt = [javascript({ jsx: true, typescript: extension.includes('ts') })];
       console.log('CodeEditor - Using JavaScript extension:', jsExt);
       return jsExt;
+    }
     case 'html':
       console.log('CodeEditor - Using HTML extension');
       return [html()];
