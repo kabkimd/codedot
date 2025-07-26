@@ -152,10 +152,11 @@ export const CodeEditor = ({
             const dirty = val !== content;
             setIsDirty(dirty);
             onDirtyChange?.(dirty);
-          onContentChange?.(val);
-        }}
-          extensions={extensions}
-          readOnly={readOnly}
+            onContentChange?.(val);
+          }}
+            extensions={extensions}
+            readOnly={readOnly}
+
           style={{
             height: '100%',
             fontSize: '14px',
