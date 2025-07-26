@@ -58,32 +58,38 @@
   background-color: hsl(var(--accent) / 0.1);
 }
 
-/* Light mode - dark text */
-.cm-editor {
-  color: hsl(var(--foreground));
+/* Override syntax highlighting colors for better readability in dark mode */
+.dark .cm-editor .cm-content {
+  color: #f8f8f2 !important; /* Bright foreground */
 }
 
-.cm-content {
-  color: hsl(var(--foreground));
+.dark .cm-editor .cm-line {
+  color: #f8f8f2 !important;
 }
 
-.cm-gutters {
-  background: hsl(var(--muted));
-  color: hsl(var(--muted-foreground));
-  border-right: 1px solid hsl(var(--border));
-}
+/* Syntax highlighting overrides for dark mode */
+.dark .cm-editor .ͼ1 { color: #f92672 !important; } /* Keywords */
+.dark .cm-editor .ͼ2 { color: #66d9ef !important; } /* Types */
+.dark .cm-editor .ͼ3 { color: #a6e22e !important; } /* Strings */
+.dark .cm-editor .ͼ4 { color: #fd971f !important; } /* Numbers */
+.dark .cm-editor .ͼ5 { color: #ae81ff !important; } /* Constants */
+.dark .cm-editor .ͼ6 { color: #75715e !important; } /* Comments */
+.dark .cm-editor .ͼ7 { color: #f8f8f2 !important; } /* Variables */
+.dark .cm-editor .ͼ8 { color: #e6db74 !important; } /* String literals */
 
-/* Dark mode - bright text */
-.dark .cm-editor {
-  color: #e1e4e8;
-}
+/* Token classes for better targeting */
+.dark .cm-editor .cm-keyword { color: #f92672 !important; }
+.dark .cm-editor .cm-string { color: #a6e22e !important; }
+.dark .cm-editor .cm-comment { color: #75715e !important; }
+.dark .cm-editor .cm-number { color: #fd971f !important; }
+.dark .cm-editor .cm-operator { color: #f8f8f2 !important; }
+.dark .cm-editor .cm-variable { color: #f8f8f2 !important; }
+.dark .cm-editor .cm-property { color: #66d9ef !important; }
 
-.dark .cm-content {
-  color: #e1e4e8;
-}
-
+/* Gutters */
 .dark .cm-gutters {
-  background: hsl(var(--muted));
-  color: #8b949e;
+  background: #2f3349 !important;
+  color: #8b949e !important;
+  border-right: 1px solid #444 !important;
 }
 
