@@ -22,11 +22,6 @@ import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import prettier from 'prettier/standalone';
-import parserBabel from 'prettier/parser-babel';
-import parserHtml from 'prettier/parser-html';
-import parserCss from 'prettier/parser-postcss';
-import parserMarkdown from 'prettier/parser-markdown';
 
 interface CodeEditorProps {
   content: string;
@@ -522,8 +517,8 @@ const jsLinter = linter((view) => {
   return diagnostics;
 });
 
-// Format document using Prettier
-const formatDocument = async (content: string, fileName: string): Promise<string> => {
+// Simple document formatter for basic formatting
+const formatDocument = (content: string, fileName: string): string => {
   const extension = fileName.split('.').pop()?.toLowerCase();
   
   try {
@@ -532,48 +527,19 @@ const formatDocument = async (content: string, fileName: string): Promise<string
       case 'jsx':
       case 'ts':
       case 'tsx':
-        return await prettier.format(content, {
-          parser: 'babel-ts',
-          plugins: [parserBabel],
-          semi: true,
-          singleQuote: true,
-          tabWidth: 2,
-          trailingComma: 'es5',
-        });
+        return formatJavaScript(content);
       
       case 'json':
-        return await prettier.format(content, {
-          parser: 'json',
-          plugins: [parserBabel],
-          tabWidth: 2,
-        });
+        return formatJSON(content);
       
       case 'html':
       case 'htm':
-        return await prettier.format(content, {
-          parser: 'html',
-          plugins: [parserHtml],
-          tabWidth: 2,
-          htmlWhitespaceSensitivity: 'css',
-        });
+        return formatHTML(content);
       
       case 'css':
       case 'scss':
       case 'sass':
-        return await prettier.format(content, {
-          parser: 'css',
-          plugins: [parserCss],
-          tabWidth: 2,
-        });
-      
-      case 'md':
-      case 'markdown':
-        return await prettier.format(content, {
-          parser: 'markdown',
-          plugins: [parserMarkdown],
-          tabWidth: 2,
-          proseWrap: 'preserve',
-        });
+        return formatCSS(content);
       
       default:
         // For unsupported file types, return original content
@@ -584,6 +550,95 @@ const formatDocument = async (content: string, fileName: string): Promise<string
     // Return original content if formatting fails
     return content;
   }
+};
+
+// Simple JavaScript/TypeScript formatter
+const formatJavaScript = (content: string): string => {
+  let formatted = content;
+  
+  // Basic formatting rules
+  formatted = formatted
+    // Add spaces around operators
+    .replace(/([a-zA-Z0-9_$])(=|===|!==|==|!=|\+=|-=|\*=|\/=)([a-zA-Z0-9_$])/g, '$1 $2 $3')
+    // Add spaces after commas
+    .replace(/,(?!\s)/g, ', ')
+    // Add spaces after keywords
+    .replace(/\b(if|for|while|switch|catch)\(/g, '$1 (')
+    // Ensure proper spacing around curly braces
+    .replace(/\{(?!\s*$)/g, '{ ')
+    .replace(/(?<!^\s*)\}/g, ' }')
+    // Fix line endings and indentation
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    .join('\n');
+  
+  return formatted;
+};
+
+// Simple JSON formatter
+const formatJSON = (content: string): string => {
+  try {
+    const parsed = JSON.parse(content);
+    return JSON.stringify(parsed, null, 2);
+  } catch {
+    return content;
+  }
+};
+
+// Simple HTML formatter
+const formatHTML = (content: string): string => {
+  let formatted = content;
+  let indentLevel = 0;
+  const indentSize = 2;
+  
+  // Split by tags and format
+  const lines = formatted.split(/(<[^>]*>)/g).filter(Boolean);
+  const result: string[] = [];
+  
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+    
+    if (trimmed.startsWith('</')) {
+      indentLevel = Math.max(0, indentLevel - 1);
+    }
+    
+    if (trimmed.startsWith('<') && trimmed.includes('>')) {
+      result.push(' '.repeat(indentLevel * indentSize) + trimmed);
+      if (!trimmed.includes('</') && !trimmed.endsWith('/>') && !['br', 'hr', 'img', 'input', 'meta', 'link'].some(tag => trimmed.includes(`<${tag}`))) {
+        indentLevel++;
+      }
+    } else {
+      result.push(' '.repeat(indentLevel * indentSize) + trimmed);
+    }
+  });
+  
+  return result.join('\n');
+};
+
+// Simple CSS formatter
+const formatCSS = (content: string): string => {
+  let formatted = content;
+  
+  // Basic CSS formatting
+  formatted = formatted
+    // Add spaces after colons
+    .replace(/:(?!\s)/g, ': ')
+    // Add spaces after commas
+    .replace(/,(?!\s)/g, ', ')
+    // Ensure proper line breaks and indentation
+    .replace(/\{/g, ' {\n  ')
+    .replace(/\}/g, '\n}\n')
+    .replace(/;/g, ';\n  ')
+    // Clean up extra whitespace
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    .join('\n')
+    .replace(/\n\s*\n/g, '\n');
+  
+  return formatted;
 };
 
 const getLanguageExtension = (fileName: string) => {
@@ -674,11 +729,11 @@ export const CodeEditor = ({
     });
   }, [onSave, value, onDirtyChange, fileName, toast]);
 
-  const handleFormat = useCallback(async () => {
+  const handleFormat = useCallback(() => {
     if (readOnly) return;
     
     try {
-      const formattedContent = await formatDocument(value, fileName);
+      const formattedContent = formatDocument(value, fileName);
       if (formattedContent !== value) {
         setValue(formattedContent);
         const dirty = formattedContent !== content;
