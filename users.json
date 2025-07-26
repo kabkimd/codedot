@@ -1,5 +1,13 @@
 [
   {
+    "username": "leo",
+    "full_name": "Leo Scarin",
+    "email": "l.scarin@kabk.nl",
+    "password": "$2b$10$aO9.Fi6G8VQU6I0Z49gH6Op/hESvjI69NKN.JuGEgYCdRgwfAJnA6",
+    "year": 1,
+    "isPublic": true
+  },
+  {
     "username": "lilith",
     "full_name": "Lilith Aleksandrowicz",
     "email": "3612333@kabk.nl",
