@@ -4,7 +4,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
 import { json } from '@codemirror/lang-json';
-import { basicSetup } from '@uiw/codemirror-extensions-basic-setup';
+import { basicSetup } from '@codemirror/basic-setup';
 import { basicLight, basicDark } from '@uiw/codemirror-theme-basic';
 import { EditorView } from '@codemirror/view';
 import { search } from '@codemirror/search';
