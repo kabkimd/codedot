@@ -58,3 +58,32 @@
   background-color: hsl(var(--accent) / 0.1);
 }
 
+/* Light mode - dark text */
+.cm-editor {
+  color: hsl(var(--foreground));
+}
+
+.cm-content {
+  color: hsl(var(--foreground));
+}
+
+.cm-gutters {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  border-right: 1px solid hsl(var(--border));
+}
+
+/* Dark mode - bright text */
+.dark .cm-editor {
+  color: #e1e4e8;
+}
+
+.dark .cm-content {
+  color: #e1e4e8;
+}
+
+.dark .cm-gutters {
+  background: hsl(var(--muted));
+  color: #8b949e;
+}
+
