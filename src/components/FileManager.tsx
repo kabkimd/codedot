@@ -223,14 +223,26 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   const getDisplayPath = (fullPath: string): string => {
     if (!fullPath) return '';
     const parts = fullPath.split('/');
+    
+    // Debug logging
+    console.log('Full path:', fullPath);
+    console.log('Username:', username);
+    console.log('Path parts:', parts);
+    
     // Find the username directory and show path relative to that
     const userIndex = parts.findIndex(part => part === username);
+    console.log('User index:', userIndex);
+    
     if (userIndex !== -1 && userIndex < parts.length - 1) {
       // Return path relative to user folder (exclude username from display)
-      return parts.slice(userIndex + 1).join('/');
+      const relativePath = parts.slice(userIndex + 1).join('/');
+      console.log('Relative path:', relativePath);
+      return relativePath;
     }
     // Fallback to just filename if user folder not found
-    return parts[parts.length - 1] || '';
+    const fallback = parts[parts.length - 1] || '';
+    console.log('Fallback path:', fallback);
+    return fallback;
   };
   
   const displayPath = getDisplayPath(selectedFile);
