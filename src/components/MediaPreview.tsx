@@ -4,31 +4,21 @@ import { ExternalLink } from 'lucide-react';
 
 interface MediaPreviewProps {
   fileName: string;
-  filePath: string;
-  content?: string; // For text files or base64 content
+  mimeType: string;
+  contentUrl: string;
 }
 
-const getFileType = (fileName: string) => {
-  const extension = fileName.split('.').pop()?.toLowerCase();
-  
-  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension || '')) {
-    return 'image';
-  }
-  if (['mp4', 'avi', 'mov', 'mkv', 'webm'].includes(extension || '')) {
-    return 'video';
-  }
-  if (['mp3', 'wav', 'flac', 'ogg'].includes(extension || '')) {
-    return 'audio';
-  }
-  if (['pdf'].includes(extension || '')) {
-    return 'pdf';
-  }
+const getFileType = (mime: string) => {
+  if (mime.startsWith('image/')) return 'image';
+  if (mime.startsWith('video/')) return 'video';
+  if (mime.startsWith('audio/')) return 'audio';
+  if (mime === 'application/pdf') return 'pdf';
   return 'unknown';
 };
 
-export const MediaPreview = ({ fileName, filePath, content }: MediaPreviewProps) => {
+export const MediaPreview = ({ fileName, mimeType, contentUrl }: MediaPreviewProps) => {
   const [error, setError] = useState(false);
-  const fileType = getFileType(fileName);
+  const fileType = getFileType(mimeType);
 
 
   if (error) {
@@ -56,7 +46,7 @@ export const MediaPreview = ({ fileName, filePath, content }: MediaPreviewProps)
         {fileType === 'image' && (
           <div className="flex justify-center">
             <img
-              src={content || filePath}
+              src={contentUrl}
               alt={fileName}
               className="max-w-full max-h-full object-contain border border-border"
               onError={() => setError(true)}
@@ -71,7 +61,7 @@ export const MediaPreview = ({ fileName, filePath, content }: MediaPreviewProps)
               className="max-w-full max-h-full border border-border"
               onError={() => setError(true)}
             >
-              <source src={content || filePath} />
+              <source src={contentUrl} />
               Your browser does not support video playback.
             </video>
           </div>
@@ -84,7 +74,7 @@ export const MediaPreview = ({ fileName, filePath, content }: MediaPreviewProps)
               className="w-full max-w-md"
               onError={() => setError(true)}
             >
-              <source src={content || filePath} />
+              <source src={contentUrl} />
               Your browser does not support audio playback.
             </audio>
           </div>
@@ -93,7 +83,7 @@ export const MediaPreview = ({ fileName, filePath, content }: MediaPreviewProps)
         {fileType === 'pdf' && (
           <div className="h-full">
             <iframe
-              src={content || filePath}
+              src={contentUrl}
               className="w-full h-full border border-border"
               onError={() => setError(true)}
             />

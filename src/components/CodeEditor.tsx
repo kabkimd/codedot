@@ -646,7 +646,7 @@ const formatJSON = (content: string): string => {
 
 // Simple HTML formatter
 const formatHTML = (content: string): string => {
-  let formatted = content;
+  const formatted = content;
   let indentLevel = 0;
   const indentSize = 2;
   
