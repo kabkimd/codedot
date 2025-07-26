@@ -5,11 +5,13 @@ import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
-import { basicSetup } from '@codemirror/basic-setup';
 import { oneDark } from '@codemirror/theme-one-dark';
-import { EditorView } from '@codemirror/view';
-import { search } from '@codemirror/search';
-import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language';
+import { EditorView, keymap, highlightActiveLine, lineNumbers } from '@codemirror/view';
+import { EditorState } from '@codemirror/state';
+import { search, searchKeymap } from '@codemirror/search';
+import { syntaxHighlighting, defaultHighlightStyle, bracketMatching } from '@codemirror/language';
+import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
+import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
 import { tags } from '@lezer/highlight';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
@@ -108,7 +110,17 @@ export const CodeEditor = ({
 
 
   const extensions = [
-    basicSetup,
+    lineNumbers(),
+    highlightActiveLine(),
+    bracketMatching(),
+    autocompletion(),
+    history(),
+    keymap.of([
+      ...defaultKeymap,
+      ...searchKeymap,
+      ...historyKeymap,
+      ...completionKeymap,
+    ]),
     syntaxHighlighting(defaultHighlightStyle),
     ...getLanguageExtension(fileName),
     search(),
