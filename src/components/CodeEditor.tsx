@@ -142,7 +142,6 @@ export const CodeEditor = ({
         fontSize: '14px',
         height: '100%',
         backgroundColor: resolvedTheme === 'dark' ? undefined : '#ffffff',
-        color: resolvedTheme === 'dark' ? undefined : '#24292e',
       },
       '.cm-focused': {
         outline: 'none',
@@ -152,9 +151,6 @@ export const CodeEditor = ({
       },
       '.cm-scroller': {
         fontFamily: 'JetBrains Mono, Consolas, Monaco, "Courier New", monospace',
-      },
-      '.cm-content': {
-        color: resolvedTheme === 'dark' ? undefined : '#24292e',
       },
     }),
     search(),
