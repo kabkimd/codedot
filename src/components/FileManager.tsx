@@ -276,18 +276,13 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
       <div className="h-12 flex items-center justify-between px-4 border-b border-border bg-muted/20">
-        {/* Left side - Scrolling text */}
+        {/* Left side - Editing link */}
         <div className="flex-1 max-w-xs">
-          <ScrollingText />
-        </div>
-        
-        {/* Center - Editing link */}
-        <div className="flex-1 flex justify-center">
           <span className="text-sm text-muted-foreground inline-flex items-center gap-1">
             you are editing{' '}
-            <a 
+            <a
               href={`https://kabkimd.nl/${username}`}
-              target="_blank" 
+              target="_blank"
               rel="noopener noreferrer"
               className="font-semibold text-primary hover:text-primary/80 transition-colors underline decoration-primary/60 hover:decoration-primary underline-offset-2 inline-flex items-center gap-1"
             >
@@ -295,6 +290,11 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
               <ExternalLink size={12} className="opacity-80" />
             </a>
           </span>
+        </div>
+
+        {/* Center - Scrolling text */}
+        <div className="flex-1 flex justify-center">
+          <ScrollingText />
         </div>
         
         {/* Right side - Controls */}
