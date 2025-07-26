@@ -272,10 +272,10 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
             href={`https://kabkimd.nl/${username}`}
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors relative inline-flex items-center gap-1"
+            className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors relative inline-flex items-center gap-1 underline decoration-primary/60 hover:decoration-primary underline-offset-2"
           >
             you are editing kabkimd.nl/{username}
-            <ExternalLink size={12} className="opacity-60" />
+            <ExternalLink size={12} className="opacity-80" />
           </a>
         </div>
         
