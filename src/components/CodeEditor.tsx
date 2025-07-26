@@ -297,6 +297,28 @@ const jsLinter = linter((view) => {
   
   const jsGlobals = new Set(['console', 'window', 'document', 'Array', 'Object', 'String', 'Number', 'Boolean', 'Date', 'Math', 'JSON', 'RegExp', 'Error', 'Promise', 'setTimeout', 'setInterval', 'clearTimeout', 'clearInterval', 'fetch', 'localStorage', 'sessionStorage', 'location', 'history', 'navigator', 'alert', 'confirm', 'prompt', 'parseInt', 'parseFloat', 'isNaN', 'isFinite', 'encodeURIComponent', 'decodeURIComponent', 'require', 'module', 'exports', 'global', 'process', 'Buffer', 'React', 'ReactDOM', 'useState', 'useEffect', 'useCallback', 'useMemo', 'useRef', 'useContext', 'useReducer', 'Component', 'PureComponent']);
   
+  // Common typos for keywords
+  const keywordTypos = new Map([
+    ['functino', 'function'],
+    ['fucntion', 'function'],
+    ['funciton', 'function'],
+    ['funtion', 'function'],
+    ['var', 'var'],
+    ['let', 'let'],
+    ['const', 'const'],
+    ['retur', 'return'],
+    ['retrun', 'return'],
+    ['throow', 'throw'],
+    ['trhow', 'throw'],
+    ['clas', 'class'],
+    ['clsas', 'class'],
+    ['esle', 'else'],
+    ['iff', 'if'],
+    ['whiel', 'while'],
+    ['fro', 'for'],
+    ['fo', 'for']
+  ]);
+  
   // Extract declared variables and functions
   const declared = new Set();
   const functionRegex = /function\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/g;
@@ -328,6 +350,77 @@ const jsLinter = linter((view) => {
     // Skip empty lines and comments
     if (!trimmedLine || trimmedLine.startsWith('//') || trimmedLine.startsWith('/*')) {
       return;
+    }
+    
+    // Check for keyword typos
+    keywordTypos.forEach((correct, typo) => {
+      if (trimmedLine.includes(typo)) {
+        const typoIndex = line.indexOf(typo);
+        // Make sure it's a standalone word, not part of another word
+        const beforeChar = typoIndex > 0 ? line[typoIndex - 1] : ' ';
+        const afterChar = typoIndex + typo.length < line.length ? line[typoIndex + typo.length] : ' ';
+        if (!/[a-zA-Z0-9_$]/.test(beforeChar) && !/[a-zA-Z0-9_$]/.test(afterChar)) {
+          diagnostics.push({
+            from: from + typoIndex,
+            to: from + typoIndex + typo.length,
+            severity: 'error' as const,
+            message: `Did you mean '${correct}'?`
+          });
+        }
+      }
+    });
+    
+    // Check for invalid variable names with spaces
+    if (trimmedLine.match(/\b[a-zA-Z_$][a-zA-Z0-9_$]*\s+[a-zA-Z_$][a-zA-Z0-9_$]*\s*=/)) {
+      const spaceVarMatch = trimmedLine.match(/\b([a-zA-Z_$][a-zA-Z0-9_$]*\s+[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=/);
+      if (spaceVarMatch) {
+        const invalidVar = spaceVarMatch[1];
+        const varIndex = line.indexOf(invalidVar);
+        diagnostics.push({
+          from: from + varIndex,
+          to: from + varIndex + invalidVar.length,
+          severity: 'error' as const,
+          message: 'Variable names cannot contain spaces'
+        });
+      }
+    }
+    
+    // Check for standalone invalid syntax
+    if (trimmedLine === '()') {
+      diagnostics.push({
+        from,
+        to,
+        severity: 'error' as const,
+        message: 'Invalid syntax: empty parentheses'
+      });
+    }
+    
+    if (trimmedLine === '[]') {
+      diagnostics.push({
+        from,
+        to,
+        severity: 'warning' as const,
+        message: 'Unused empty array literal'
+      });
+    }
+    
+    if (trimmedLine === '{}') {
+      diagnostics.push({
+        from,
+        to,
+        severity: 'warning' as const,
+        message: 'Empty block statement'
+      });
+    }
+    
+    // Check for incomplete statements
+    if (trimmedLine.endsWith('=') && !trimmedLine.includes('==') && !trimmedLine.includes('!=') && !trimmedLine.includes('<=') && !trimmedLine.includes('>=')) {
+      diagnostics.push({
+        from,
+        to,
+        severity: 'error' as const,
+        message: 'Incomplete assignment statement'
+      });
     }
     
     // Check for anonymous function declarations (not assignments)
@@ -479,16 +572,6 @@ const jsLinter = linter((view) => {
           message: 'Unreachable code after return/throw'
         });
       }
-    }
-    
-    // Check for empty blocks
-    if (trimmedLine === '{}') {
-      diagnostics.push({
-        from,
-        to,
-        severity: 'warning' as const,
-        message: 'Empty block statement'
-      });
     }
     
     // Check for console.log (suggest removing in production)
