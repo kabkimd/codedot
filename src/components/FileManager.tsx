@@ -267,7 +267,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
         </div>
         
         {/* Center - Editing link */}
-        <div className="flex-1 flex justify-center">
+        <div className="flex-1 flex justify-center items-center">
           <span className="text-base text-muted-foreground inline-flex items-center gap-1">
             you are editing{' '}
             <a 
