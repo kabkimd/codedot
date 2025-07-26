@@ -51,10 +51,10 @@
 }
 
 .cm-selectionBackground {
-  background: #d9d9d9;
+  background: hsl(var(--muted));
 }
 
 .cm-activeLine {
-  background-color: #cceeff44;
+  background-color: hsl(var(--accent) / 0.1);
 }
 
