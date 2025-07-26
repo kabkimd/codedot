@@ -102,7 +102,6 @@ export const CodeEditor = ({
 
   const extensions = [
     basicSetup,
-    editorTheme,
     syntaxHighlighting(defaultHighlightStyle),
     ...getLanguageExtension(fileName),
     EditorView.theme({
@@ -146,7 +145,9 @@ export const CodeEditor = ({
       </div>
       <div className="flex-1 overflow-hidden">
         <CodeMirror
+          key={resolvedTheme}
           value={value}
+          theme={editorTheme}
           onChange={(val) => {
             setValue(val);
             const dirty = val !== content;
@@ -154,9 +155,8 @@ export const CodeEditor = ({
             onDirtyChange?.(dirty);
             onContentChange?.(val);
           }}
-            extensions={extensions}
-            readOnly={readOnly}
-
+          extensions={extensions}
+          readOnly={readOnly}
           style={{
             height: '100%',
             fontSize: '14px',
