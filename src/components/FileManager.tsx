@@ -268,15 +268,18 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
         
         {/* Center - Editing link */}
         <div className="flex-1 flex justify-center">
-          <a 
-            href={`https://kabkimd.nl/${username}`}
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors relative inline-flex items-center gap-1 underline decoration-primary/60 hover:decoration-primary underline-offset-2"
-          >
-            you are editing kabkimd.nl/{username}
-            <ExternalLink size={12} className="opacity-80" />
-          </a>
+          <span className="text-sm text-muted-foreground inline-flex items-center gap-1">
+            you are editing{' '}
+            <a 
+              href={`https://kabkimd.nl/${username}`}
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="font-semibold text-primary hover:text-primary/80 transition-colors underline decoration-primary/60 hover:decoration-primary underline-offset-2 inline-flex items-center gap-1"
+            >
+              kabkimd.nl/{username}
+              <ExternalLink size={12} className="opacity-80" />
+            </a>
+          </span>
         </div>
         
         {/* Right side - Controls */}
