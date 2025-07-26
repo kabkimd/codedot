@@ -6,11 +6,11 @@ import { css } from '@codemirror/lang-css';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
 import { basicSetup } from '@codemirror/basic-setup';
-import { basicLight } from '@uiw/codemirror-theme-basic';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { EditorView } from '@codemirror/view';
 import { search } from '@codemirror/search';
-import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language';
+import { syntaxHighlighting, defaultHighlightStyle, HighlightStyle } from '@codemirror/language';
+import { tags } from '@lezer/highlight';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
@@ -67,7 +67,35 @@ export const CodeEditor = ({
   const [isDirty, setIsDirty] = useState(false);
   const { toast } = useToast();
   const { resolvedTheme } = useTheme();
-  const editorTheme = resolvedTheme === 'dark' ? oneDark : basicLight;
+  
+  // Create a light theme with proper syntax highlighting
+  const lightHighlightStyle = HighlightStyle.define([
+    { tag: tags.keyword, color: '#d73a49' },
+    { tag: tags.atom, color: '#005cc5' },
+    { tag: tags.bool, color: '#d73a49' },
+    { tag: tags.url, color: '#032f62' },
+    { tag: tags.labelName, color: '#6f42c1' },
+    { tag: tags.inserted, color: '#28a745' },
+    { tag: tags.deleted, color: '#d73a49' },
+    { tag: tags.literal, color: '#032f62' },
+    { tag: tags.string, color: '#032f62' },
+    { tag: tags.number, color: '#005cc5' },
+    { tag: [tags.regexp, tags.escape, tags.special(tags.string)], color: '#e36209' },
+    { tag: tags.definition(tags.variableName), color: '#e36209' },
+    { tag: tags.local(tags.variableName), color: '#e36209' },
+    { tag: [tags.typeName, tags.namespace], color: '#6f42c1' },
+    { tag: tags.className, color: '#6f42c1' },
+    { tag: [tags.special(tags.variableName), tags.macroName], color: '#005cc5' },
+    { tag: tags.definition(tags.propertyName), color: '#005cc5' },
+    { tag: tags.comment, color: '#6a737d' },
+    { tag: tags.meta, color: '#6a737d' },
+    { tag: tags.invalid, color: '#cb2431' },
+    { tag: tags.tagName, color: '#22863a' },
+    { tag: tags.attributeName, color: '#6f42c1' },
+    { tag: tags.attributeValue, color: '#032f62' },
+  ]);
+
+  const editorTheme = resolvedTheme === 'dark' ? oneDark : 'light';
 
   useEffect(() => {
     setValue(content);
@@ -107,12 +135,14 @@ export const CodeEditor = ({
 
   const extensions = [
     basicSetup,
-    syntaxHighlighting(defaultHighlightStyle),
+    syntaxHighlighting(resolvedTheme === 'dark' ? defaultHighlightStyle : lightHighlightStyle),
     ...getLanguageExtension(fileName),
     EditorView.theme({
       '&': {
         fontSize: '14px',
         height: '100%',
+        backgroundColor: resolvedTheme === 'dark' ? undefined : '#ffffff',
+        color: resolvedTheme === 'dark' ? undefined : '#24292e',
       },
       '.cm-focused': {
         outline: 'none',
@@ -122,6 +152,9 @@ export const CodeEditor = ({
       },
       '.cm-scroller': {
         fontFamily: 'JetBrains Mono, Consolas, Monaco, "Courier New", monospace',
+      },
+      '.cm-content': {
+        color: resolvedTheme === 'dark' ? undefined : '#24292e',
       },
     }),
     search(),
