@@ -467,7 +467,7 @@ export const CodeEditor = ({
           )}
         </div>
       </div>
-      <div className="flex-1">
+      <div className="flex-1 min-h-0">
         <CodeMirror
           key={resolvedTheme}
           value={value}
@@ -481,6 +481,7 @@ export const CodeEditor = ({
           }}
           extensions={extensions}
           readOnly={readOnly}
+          height="100%"
           style={{
             height: '100%',
             fontSize: '14px',
