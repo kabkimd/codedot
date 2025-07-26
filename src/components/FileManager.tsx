@@ -336,7 +336,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
               />
             )
           ) : (
-            <div className="h-full flex items-center justify-center text-muted-foreground">
+            <div className="h-full flex items-start justify-center text-muted-foreground pt-12">
               <p>Select a file to edit or preview</p>
             </div>
           )}
