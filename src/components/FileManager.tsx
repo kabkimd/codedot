@@ -75,7 +75,9 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   };
 
   const loadFile = async (filePath: string) => {
+    console.log('FileManager - loadFile called with:', filePath);
     setSelectedFile(filePath);
+    console.log('FileManager - selectedFile set to:', filePath);
     try {
       const text = await fileAPI.getFile(filePath);
       setFileContent(text);
@@ -246,6 +248,8 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   };
   
   const displayPath = getDisplayPath(selectedFile);
+  console.log('FileManager - selectedFile for display:', selectedFile);
+  console.log('FileManager - displayPath result:', displayPath);
   const isEditable = isEditableFile(selectedFileName);
 
   return (
