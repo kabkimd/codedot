@@ -12,6 +12,7 @@ import { search, searchKeymap } from '@codemirror/search';
 import { syntaxHighlighting, defaultHighlightStyle, bracketMatching } from '@codemirror/language';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
+import { linter, lintGutter } from '@codemirror/lint';
 import { tags } from '@lezer/highlight';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,73 @@ interface CodeEditorProps {
   readOnly?: boolean;
 }
 
+// Simple JSON linter
+const jsonLinter = linter((view) => {
+  const doc = view.state.doc.toString();
+  const diagnostics = [];
+  
+  try {
+    JSON.parse(doc);
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      // Try to extract line/column from error message
+      const match = error.message.match(/at position (\d+)/);
+      if (match) {
+        const pos = parseInt(match[1]);
+        diagnostics.push({
+          from: pos,
+          to: pos + 1,
+          severity: 'error' as const,
+          message: error.message
+        });
+      } else {
+        // Fallback to highlighting the entire document
+        diagnostics.push({
+          from: 0,
+          to: doc.length,
+          severity: 'error' as const,
+          message: error.message
+        });
+      }
+    }
+  }
+  
+  return diagnostics;
+});
+
+// Simple JavaScript/TypeScript linter for basic syntax errors
+const jsLinter = linter((view) => {
+  const doc = view.state.doc.toString();
+  const diagnostics = [];
+  
+  // Basic checks for common syntax errors
+  const lines = doc.split('\n');
+  lines.forEach((line, lineIndex) => {
+    const from = view.state.doc.line(lineIndex + 1).from;
+    const to = view.state.doc.line(lineIndex + 1).to;
+    
+    // Check for unmatched brackets/braces
+    const openBrackets = (line.match(/\{/g) || []).length;
+    const closeBrackets = (line.match(/\}/g) || []).length;
+    const openParens = (line.match(/\(/g) || []).length;
+    const closeParens = (line.match(/\)/g) || []).length;
+    
+    if (line.trim() && (openBrackets > closeBrackets + 1 || openParens > closeParens + 1)) {
+      // Only warn if there's a significant imbalance
+      if (openBrackets - closeBrackets > 1 || openParens - closeParens > 1) {
+        diagnostics.push({
+          from,
+          to,
+          severity: 'warning' as const,
+          message: 'Possible unmatched brackets or parentheses'
+        });
+      }
+    }
+  });
+  
+  return diagnostics;
+});
+
 const getLanguageExtension = (fileName: string) => {
   const extension = fileName.split('.').pop()?.toLowerCase();
   
@@ -41,15 +109,16 @@ const getLanguageExtension = (fileName: string) => {
     case 'jsx':
     case 'ts':
     case 'tsx': {
-      return [javascript({ jsx: true, typescript: extension.includes('ts') })];
+      return [javascript({ jsx: true, typescript: extension.includes('ts') }), jsLinter];
     }
     case 'html':
       return [html()];
     case 'css':
     case 'scss':
       return [css()];
-    case 'json':
-      return [json()];
+    case 'json': {
+      return [json(), jsonLinter];
+    }
     case 'md':
     case 'markdown':
       return [markdown()];
@@ -112,6 +181,7 @@ export const CodeEditor = ({
 
   const extensions = [
     lineNumbers(),
+    lintGutter(),
     highlightActiveLine(),
     bracketMatching(),
     autocompletion(),
