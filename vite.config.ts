@@ -20,7 +20,6 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "@uiw/react-codemirror/dist/codemirror.css": path.resolve(__dirname, "./src/codemirror.css"),
     },
   },
 }));

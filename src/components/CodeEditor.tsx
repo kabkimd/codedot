@@ -96,7 +96,8 @@ export const CodeEditor = ({
     { tag: tags.attributeValue, color: '#032f62' },
   ]);
 
-  const editorTheme = oneDark; // Temporarily use dark theme to test syntax highlighting
+  // Temporarily force oneDark theme for both to test if ANY syntax highlighting works
+  const editorTheme = oneDark;
 
   useEffect(() => {
     setValue(content);
@@ -136,36 +137,7 @@ export const CodeEditor = ({
 
   const extensions = [
     basicSetup,
-    syntaxHighlighting(resolvedTheme === 'dark' ? defaultHighlightStyle : lightHighlightStyle),
     ...getLanguageExtension(fileName),
-    EditorView.theme({
-      '&': {
-        fontSize: '14px',
-        height: '100%',
-        backgroundColor: resolvedTheme === 'dark' ? undefined : '#ffffff',
-      },
-      '.cm-focused': {
-        outline: 'none',
-      },
-      '.cm-editor': {
-        height: '100%',
-        // Force syntax highlighting colors to take precedence over global styles
-        color: 'unset !important',
-      },
-      '.cm-scroller': {
-        fontFamily: 'JetBrains Mono, Consolas, Monaco, "Courier New", monospace',
-        // Ensure syntax highlighting isn't overridden by global text color
-        color: 'unset !important',
-      },
-      '.cm-content': {
-        // Reset any global text color inheritance
-        color: 'unset !important',
-      },
-      // Force syntax highlighting colors to work
-      '.cm-content *': {
-        color: 'unset !important',
-      },
-    }),
     search(),
   ];
 
