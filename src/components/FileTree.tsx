@@ -50,7 +50,7 @@ interface FileTreeProps {
   onFileSelect: (path: string) => void;
   onCreateFile: (parentPath: string, name: string) => void;
   onCreateFolder: (parentPath: string, name: string) => void;
-  onCreateP5Project: () => void;
+  onCreateP5Project: (name: string) => void;
   onRename: (path: string, newName: string) => void;
   onDelete: (path: string) => void;
   onUpload: (parentPath: string, files: FileList) => void;
@@ -75,7 +75,7 @@ export const FileTree = ({
 }: FileTreeProps) => {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [showCreateDialog, setShowCreateDialog] = useState<{
-    type: 'file' | 'folder';
+    type: 'file' | 'folder' | 'p5js';
     parentPath: string;
   } | null>(null);
   const [newItemName, setNewItemName] = useState('');
@@ -105,13 +105,16 @@ export const FileTree = ({
 
   const handleCreate = () => {
     if (!showCreateDialog || !newItemName.trim()) return;
-    
+
+    const name = newItemName.trim();
     if (showCreateDialog.type === 'file') {
-      onCreateFile(showCreateDialog.parentPath, newItemName.trim());
+      onCreateFile(showCreateDialog.parentPath, name);
+    } else if (showCreateDialog.type === 'folder') {
+      onCreateFolder(showCreateDialog.parentPath, name);
     } else {
-      onCreateFolder(showCreateDialog.parentPath, newItemName.trim());
+      onCreateP5Project(name);
     }
-    
+
     setShowCreateDialog(null);
     setNewItemName('');
   };
@@ -267,7 +270,14 @@ export const FileTree = ({
     <div className="h-full flex flex-col border-r border-border bg-background">
       <div className="p-2 border-b border-border flex items-center justify-between">
         <h3 className="text-sm font-medium">Files</h3>
-        <Button variant="ghost" size="sm" onClick={onCreateP5Project} className="gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() =>
+            rootPath && setShowCreateDialog({ type: 'p5js', parentPath: rootPath })
+          }
+          className="gap-1"
+        >
           <Plus size={14} />
           P5js
         </Button>
@@ -287,12 +297,21 @@ export const FileTree = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              Create New {showCreateDialog?.type === 'file' ? 'File' : 'Folder'}
+              Create New{' '}
+              {showCreateDialog?.type === 'file'
+                ? 'File'
+                : showCreateDialog?.type === 'folder'
+                ? 'Folder'
+                : 'P5js Folder'}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Input
-              placeholder={`Enter ${showCreateDialog?.type} name`}
+              placeholder={`Enter ${
+                showCreateDialog?.type === 'p5js'
+                  ? 'folder name'
+                  : `${showCreateDialog?.type} name`
+              }`}
               value={newItemName}
               onChange={(e) => setNewItemName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}

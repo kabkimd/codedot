@@ -180,12 +180,9 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
       .catch((err) => console.error('Failed to create folder', err));
   };
 
-  const handleCreateP5Project = async () => {
+  const handleCreateP5Project = async (folderName: string) => {
     const root = fileSystem[0]?.path;
     if (!root) return;
-    const name = prompt('Enter a folder name for your P5 project', 'p5js')?.trim();
-    if (!name) return;
-    const folderName = name;
     try {
       await fileAPI.createFolder(root, folderName);
       const base = `${root}/${folderName}`;
