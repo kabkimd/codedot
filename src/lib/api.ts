@@ -1,5 +1,4 @@
-import { isLovableEnvironment } from './environment';
-import { supabaseAuthAPI, supabaseUserAPI, supabaseFileAPI } from './api-supabase';
+// Simplified API - only using Express backend
 
 const API_BASE = '/api';
 
@@ -16,16 +15,8 @@ const expressAuthAPI = {
   }
 };
 
-// Environment-aware API
-export const authAPI = {
-  login: async (username: string, password: string) => {
-    if (isLovableEnvironment()) {
-      return supabaseAuthAPI.login(username, password);
-    } else {
-      return expressAuthAPI.login(username, password);
-    }
-  }
-};
+// Simplified auth API - only Express
+export const authAPI = expressAuthAPI;
 
 // Express user API (for local development)
 const expressUserAPI = {
@@ -50,22 +41,8 @@ const expressUserAPI = {
   }
 };
 
-export const userAPI = {
-  getCurrent: async () => {
-    if (isLovableEnvironment()) {
-      return supabaseUserAPI.getCurrent();
-    } else {
-      return expressUserAPI.getCurrent();
-    }
-  },
-  update: async (data: Record<string, unknown>) => {
-    if (isLovableEnvironment()) {
-      return supabaseUserAPI.update(data);
-    } else {
-      return expressUserAPI.update(data);
-    }
-  }
-};
+// Simplified user API - only Express
+export const userAPI = expressUserAPI;
 
 let token = '';
 
@@ -201,82 +178,5 @@ const expressFileAPI = {
   }
 };
 
-export const fileAPI = {
-  getTree: async () => {
-    if (isLovableEnvironment()) {
-      return supabaseFileAPI.getTree();
-    } else {
-      return expressFileAPI.getTree();
-    }
-  },
-  getUsage: async () => {
-    if (isLovableEnvironment()) {
-      return supabaseFileAPI.getUsage();
-    } else {
-      return expressFileAPI.getUsage();
-    }
-  },
-  getFile: async (path: string) => {
-    if (isLovableEnvironment()) {
-      return supabaseFileAPI.getFile(path);
-    } else {
-      return expressFileAPI.getFile(path);
-    }
-  },
-  saveFile: async (path: string, content: string) => {
-    if (isLovableEnvironment()) {
-      return supabaseFileAPI.saveFile(path, content);
-    } else {
-      return expressFileAPI.saveFile(path, content);
-    }
-  },
-  createFile: async (parent: string, name: string) => {
-    if (isLovableEnvironment()) {
-      return supabaseFileAPI.createFile(parent, name);
-    } else {
-      return expressFileAPI.createFile(parent, name);
-    }
-  },
-  createFolder: async (parent: string, name: string) => {
-    if (isLovableEnvironment()) {
-      return supabaseFileAPI.createFolder(parent, name);
-    } else {
-      return expressFileAPI.createFolder(parent, name);
-    }
-  },
-  deleteItem: async (path: string) => {
-    if (isLovableEnvironment()) {
-      return supabaseFileAPI.deleteItem(path);
-    } else {
-      return expressFileAPI.deleteItem(path);
-    }
-  },
-  renameItem: async (path: string, newName: string) => {
-    if (isLovableEnvironment()) {
-      return supabaseFileAPI.renameItem(path, newName);
-    } else {
-      return expressFileAPI.renameItem(path, newName);
-    }
-  },
-  uploadFiles: async (parent: string, files: FileList) => {
-    if (isLovableEnvironment()) {
-      return supabaseFileAPI.uploadFiles(parent, files);
-    } else {
-      return expressFileAPI.uploadFiles(parent, files);
-    }
-  },
-  moveItem: async (path: string, target: string) => {
-    if (isLovableEnvironment()) {
-      return supabaseFileAPI.moveItem(path, target);
-    } else {
-      return expressFileAPI.moveItem(path, target);
-    }
-  },
-  downloadItem: async (path: string) => {
-    if (isLovableEnvironment()) {
-      return supabaseFileAPI.downloadItem(path);
-    } else {
-      return expressFileAPI.downloadItem(path);
-    }
-  }
-};
+// Simplified file API - only Express
+export const fileAPI = expressFileAPI;

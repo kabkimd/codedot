@@ -2,12 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { FileIcon } from './FileIcon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from '@/components/ui/context-menu';
+import { SimpleContextMenu } from './SimpleContextMenu';
 import {
   Dialog,
   DialogContent,
@@ -134,123 +129,113 @@ export const FileTree = ({
 
     return (
       <div key={node.path}>
-        <ContextMenu>
-          <ContextMenuTrigger>
-            <div
-              className={`flex items-center py-1 px-2 hover:bg-muted cursor-pointer select-none ${
-                isSelected ? 'bg-primary text-primary-foreground' : ''
-              }`}
-              style={{ paddingLeft: `${level * 16 + 8}px` }}
-              draggable
-              onDragStart={(e) => {
-                e.stopPropagation();
-                setDraggedPath(node.path);
-              }}
-              onDragEnd={() => setDraggedPath(null)}
-              onDragOver={(e) => {
-                if (draggedPath && node.isDirectory && node.path !== draggedPath) {
-                  e.preventDefault();
+        <SimpleContextMenu
+          items={[
+            ...(node.isDirectory ? [
+              {
+                label: 'New File',
+                icon: <Plus size={14} />,
+                onClick: () => setShowCreateDialog({ type: 'file', parentPath: node.path })
+              },
+              {
+                label: 'New Folder',
+                icon: <FolderPlus size={14} />,
+                onClick: () => setShowCreateDialog({ type: 'folder', parentPath: node.path })
+              },
+              {
+                label: 'Upload Files',
+                icon: <Upload size={14} />,
+                onClick: () => {
+                  uploadParentPathRef.current = node.path;
+                  uploadInputRef.current?.click();
                 }
-              }}
-              onDrop={(e) => {
-                if (draggedPath && node.isDirectory && node.path !== draggedPath) {
-                  e.preventDefault();
-                  onMove(draggedPath, node.path);
-                }
-              }}
-              onClick={() => {
-                if (node.isDirectory) {
-                  toggleExpanded(node.path);
-                } else {
-                  onFileSelect(node.path);
-                }
-              }}
-            >
-              {node.isDirectory && (
-                <button
-                  className="p-0 h-4 w-4 mr-1"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleExpanded(node.path);
-                  }}
-                >
-                  {isExpanded ? (
-                    <ChevronDown size={12} />
-                  ) : (
-                    <ChevronRight size={12} />
-                  )}
-                </button>
-              )}
-              <FileIcon 
-                name={node.name} 
-                isDirectory={node.isDirectory} 
-                size={14} 
-              />
-              <span className="ml-2 text-sm truncate">{node.name}</span>
-            </div>
-          </ContextMenuTrigger>
-          <ContextMenuContent>
-            {node.isDirectory && (
-              <>
-                <ContextMenuItem
-                  onClick={() => setShowCreateDialog({ type: 'file', parentPath: node.path })}
-                >
-                  <Plus size={14} className="mr-2" />
-                  New File
-                </ContextMenuItem>
-                <ContextMenuItem
-                  onClick={() => setShowCreateDialog({ type: 'folder', parentPath: node.path })}
-                >
-                  <FolderPlus size={14} className="mr-2" />
-                  New Folder
-                </ContextMenuItem>
-                <ContextMenuItem
-                  onClick={() => {
-                    uploadParentPathRef.current = node.path;
-                    uploadInputRef.current?.click();
-                  }}
-                >
-                  <Upload size={14} className="mr-2" />
-                  Upload Files
-                </ContextMenuItem>
-                <ContextMenuItem
-                  onClick={() => onDownload(node.path, node.name, true)}
-                >
-                  <Download size={14} className="mr-2" />
-                  Download Folder
-                </ContextMenuItem>
-              </>
-            )}
-            {node.path !== rootPath && (
-              <ContextMenuItem
-                onClick={() => {
+              },
+              {
+                label: 'Download Folder',
+                icon: <Download size={14} />,
+                onClick: () => onDownload(node.path, node.name, true)
+              }
+            ] : []),
+            ...(node.path !== rootPath ? [
+              {
+                label: 'Rename',
+                icon: <Edit3 size={14} />,
+                onClick: () => {
                   const newName = prompt('Enter new name', node.name);
                   if (newName && newName.trim() && newName !== node.name) {
                     onRename(node.path, newName.trim());
                   }
+                }
+              },
+              {
+                label: 'Delete',
+                icon: <Trash2 size={14} />,
+                onClick: () => setDeleteTarget({ path: node.path, name: node.name }),
+                destructive: true
+              }
+            ] : []),
+            ...(!node.isDirectory ? [
+              {
+                label: 'Download File',
+                icon: <Download size={14} />,
+                onClick: () => onDownload(node.path, node.name, false)
+              }
+            ] : [])
+          ]}
+        >
+          <div
+            className={`flex items-center py-1 px-2 hover:bg-muted cursor-pointer select-none ${
+              isSelected ? 'bg-primary text-primary-foreground' : ''
+            }`}
+            style={{ paddingLeft: `${level * 16 + 8}px` }}
+            draggable
+            onDragStart={(e) => {
+              e.stopPropagation();
+              setDraggedPath(node.path);
+            }}
+            onDragEnd={() => setDraggedPath(null)}
+            onDragOver={(e) => {
+              if (draggedPath && node.isDirectory && node.path !== draggedPath) {
+                e.preventDefault();
+              }
+            }}
+            onDrop={(e) => {
+              if (draggedPath && node.isDirectory && node.path !== draggedPath) {
+                e.preventDefault();
+                onMove(draggedPath, node.path);
+              }
+            }}
+            onClick={() => {
+              if (node.isDirectory) {
+                toggleExpanded(node.path);
+              } else {
+                onFileSelect(node.path);
+              }
+            }}
+          >
+            {node.isDirectory && (
+              <button
+                className="p-0 h-4 w-4 mr-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleExpanded(node.path);
                 }}
               >
-                <Edit3 size={14} className="mr-2" />
-                Rename
-              </ContextMenuItem>
+                {isExpanded ? (
+                  <ChevronDown size={12} />
+                ) : (
+                  <ChevronRight size={12} />
+                )}
+              </button>
             )}
-            {node.path !== rootPath && (
-              <ContextMenuItem
-                className="text-destructive"
-                onClick={() => setDeleteTarget({ path: node.path, name: node.name })}
-              >
-                <Trash2 size={14} className="mr-2" />
-                Delete
-              </ContextMenuItem>
-            )}
-            {!node.isDirectory && (
-              <ContextMenuItem onClick={() => onDownload(node.path, node.name, false)}>
-                <Download size={14} className="mr-2" />
-                Download File
-              </ContextMenuItem>
-            )}
-          </ContextMenuContent>
-        </ContextMenu>
+            <FileIcon 
+              name={node.name} 
+              isDirectory={node.isDirectory} 
+              size={14} 
+            />
+            <span className="ml-2 text-sm truncate">{node.name}</span>
+          </div>
+        </SimpleContextMenu>
 
         {node.isDirectory && isExpanded && node.children && (
           <div>
