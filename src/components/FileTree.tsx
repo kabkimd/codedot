@@ -50,6 +50,7 @@ interface FileTreeProps {
   onFileSelect: (path: string) => void;
   onCreateFile: (parentPath: string, name: string) => void;
   onCreateFolder: (parentPath: string, name: string) => void;
+  onCreateP5Project: () => void;
   onRename: (path: string, newName: string) => void;
   onDelete: (path: string) => void;
   onUpload: (parentPath: string, files: FileList) => void;
@@ -64,6 +65,7 @@ export const FileTree = ({
   onFileSelect,
   onCreateFile,
   onCreateFolder,
+  onCreateP5Project,
   onRename,
   onDelete,
   onUpload,
@@ -263,8 +265,12 @@ export const FileTree = ({
 
   return (
     <div className="h-full flex flex-col border-r border-border bg-background">
-      <div className="p-2 border-b border-border">
+      <div className="p-2 border-b border-border flex items-center justify-between">
         <h3 className="text-sm font-medium">Files</h3>
+        <Button variant="ghost" size="sm" onClick={onCreateP5Project} className="gap-1">
+          <Plus size={14} />
+          P5js
+        </Button>
       </div>
       <div className="flex-1 overflow-y-auto">
         {nodes.map((node) => renderNode(node))}
