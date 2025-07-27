@@ -60,12 +60,12 @@
 
 /* Override syntax highlighting colors for better readability in dark mode */
 .dark .cm-editor {
-  background: hsl(222.2 84% 4.9%) !important; /* Match app background */
+  background: hsl(240 5.9% 10%) !important; /* Match sidebar background */
 }
 
 .dark .cm-editor .cm-content {
   color: #f8f8f2 !important; /* Bright foreground */
-  background: hsl(222.2 84% 4.9%) !important; /* Match app background */
+  background: hsl(240 5.9% 10%) !important; /* Match sidebar background */
 }
 
 .dark .cm-editor .cm-line {
@@ -93,8 +93,8 @@
 
 /* Gutters */
 .dark .cm-gutters {
-  background: #2f3349 !important;
+  background: hsl(240 5.9% 10%) !important; /* Match sidebar background */
   color: #8b949e !important;
-  border-right: 1px solid #444 !important;
+  border-right: 1px solid hsl(240 3.7% 15.9%) !important; /* Use sidebar border color */
 }
 
