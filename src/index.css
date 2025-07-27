@@ -35,7 +35,7 @@ All colors MUST be HSL.
     --destructive-foreground: 0 0% 100%;
 
     /* Clean 1px borders */
-    --border: 0 0% 80%;
+    --border: 0 0% 0%;
     --input: 0 0% 80%;
     --ring: 340 60% 65%;
 
@@ -83,7 +83,8 @@ All colors MUST be HSL.
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
+    /* --border: 217.2 32.6% 17.5%; */
+    --border: 0 0% 100%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
     --sidebar-background: 240 5.9% 10%;
