@@ -59,8 +59,13 @@
 }
 
 /* Override syntax highlighting colors for better readability in dark mode */
+.dark .cm-editor {
+  background: hsl(222.2 84% 4.9%) !important; /* Match app background */
+}
+
 .dark .cm-editor .cm-content {
   color: #f8f8f2 !important; /* Bright foreground */
+  background: hsl(222.2 84% 4.9%) !important; /* Match app background */
 }
 
 .dark .cm-editor .cm-line {
