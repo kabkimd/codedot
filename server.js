@@ -63,14 +63,8 @@ async function saveUsers() {
 
 app.use(cors());
 app.use(express.json());
-// Simple users array instead of bcrypt/jwt
-const users = [
-  { username: 'admin', password: 'admin123' },
-  { username: 'user', password: 'password' }
-];
-
 function simpleAuth(username, password) {
-  return users.find(u => u.username === username && u.password === password);
+  return USERS.find(u => u.username === username.toLowerCase() && u.password === password);
 }
 
 function userDir(username) {
@@ -191,7 +185,7 @@ function authMiddleware(req, res, next) {
     // Simple decode (just base64 username for this demo)
     const token = auth.slice(7);
     const username = Buffer.from(token, 'base64').toString();
-    if (!users.find(u => u.username === username)) {
+    if (!getUser(username)) {
       throw new Error('Invalid user');
     }
     req.user = username;
