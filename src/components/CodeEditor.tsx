@@ -20,7 +20,7 @@ import { linter, lintGutter } from '@codemirror/lint';
 import { tags as t } from '@lezer/highlight';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
-import { Save, Code2 } from 'lucide-react';
+import { Save, Code2, Bug } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 // Custom bright dark theme for better readability
@@ -777,6 +777,8 @@ export const CodeEditor = ({
 }: CodeEditorProps) => {
   const [value, setValue] = useState(content);
   const [isDirty, setIsDirty] = useState(false);
+  const [showTemplateButton, setShowTemplateButton] = useState(false);
+  const [buttonPos, setButtonPos] = useState({ left: 0, top: 0 });
   const { toast } = useToast();
   const { resolvedTheme } = useTheme();
   
@@ -825,6 +827,15 @@ export const CodeEditor = ({
       });
     }
   }, [value, fileName, content, readOnly, onDirtyChange, onContentChange, toast]);
+
+  const handleInsertTemplate = useCallback(() => {
+    setValue(htmlBoilerplate);
+    setShowTemplateButton(false);
+    const dirty = htmlBoilerplate !== content;
+    setIsDirty(dirty);
+    onDirtyChange?.(dirty);
+    onContentChange?.(htmlBoilerplate);
+  }, [content, onContentChange, onDirtyChange]);
 
   // Save file with Ctrl+S / Cmd+S and format with Ctrl+Shift+F / Cmd+Shift+F
   const handleKeyDown = useCallback(
@@ -902,22 +913,29 @@ export const CodeEditor = ({
           )}
         </div>
       </div>
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 relative">
         <CodeMirror
           key={resolvedTheme}
           value={value}
           theme={editorTheme}
-          onChange={(val) => {
-            let newVal = val;
+          onChange={(val, viewUpdate) => {
+            const newVal = val;
 
-            // Insert boilerplate if user types `!` in an empty HTML file
             const ext = fileName.split('.').pop()?.toLowerCase();
             if (
               (ext === 'html' || ext === 'htm') &&
               value.trim() === '' &&
               val.trim() === '!'
             ) {
-              newVal = htmlBoilerplate;
+              setShowTemplateButton(true);
+              const coords = viewUpdate.view.coordsAtPos(1);
+              const rect = viewUpdate.view.dom.getBoundingClientRect();
+              setButtonPos({
+                left: coords.right - rect.left + 4,
+                top: coords.top - rect.top - 4,
+              });
+            } else {
+              setShowTemplateButton(false);
             }
 
             setValue(newVal);
@@ -934,6 +952,18 @@ export const CodeEditor = ({
             fontSize: '14px',
           }}
         />
+        {showTemplateButton && (
+          <Button
+            size="icon"
+            variant="outline"
+            className="absolute z-10"
+            style={{ top: buttonPos.top, left: buttonPos.left }}
+            onClick={handleInsertTemplate}
+            title="Insert HTML template"
+          >
+            <Bug size={14} />
+          </Button>
+        )}
       </div>
     </div>
   );
