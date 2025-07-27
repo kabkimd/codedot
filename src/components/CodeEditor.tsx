@@ -111,6 +111,7 @@ interface CodeEditorProps {
    */
   onDirtyChange?: (dirty: boolean) => void;
   readOnly?: boolean;
+  isMobile?: boolean;
 }
 
 // Enhanced JSON linter
@@ -778,6 +779,7 @@ export const CodeEditor = ({
   onContentChange,
   onDirtyChange,
   readOnly = false,
+  isMobile = false,
 }: CodeEditorProps) => {
   const [value, setValue] = useState(content);
   const [isDirty, setIsDirty] = useState(false);
@@ -889,11 +891,11 @@ export const CodeEditor = ({
     <div className="h-full flex flex-col bg-background">
       <div className="flex items-center justify-between p-2 border-b border-border bg-muted/20">
         <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium">{fileName}</span>
+          <span className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'} truncate`}>{fileName}</span>
           {isDirty && <span className="text-xs text-primary">●</span>}
         </div>
-        <div className="flex items-center space-x-2">
-          {!readOnly && (
+        <div className="flex items-center gap-1 md:gap-2">
+          {!readOnly && !isMobile && (
             <>
               <Button
                 size="sm"
@@ -914,6 +916,17 @@ export const CodeEditor = ({
                 Save
               </Button>
             </>
+          )}
+          {!readOnly && isMobile && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleFormat}
+              className="p-2"
+              title="Format document"
+            >
+              <Code2 size={14} />
+            </Button>
           )}
         </div>
       </div>
@@ -953,7 +966,7 @@ export const CodeEditor = ({
           height="100%"
           style={{
             height: '100%',
-            fontSize: '14px',
+            fontSize: isMobile ? '16px' : '14px', // Larger font on mobile to prevent zoom
           }}
         />
         {showTemplateButton && (

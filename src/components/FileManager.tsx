@@ -5,6 +5,9 @@ import { MediaPreview } from './MediaPreview';
 import { ScrollingText } from './ScrollingText';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './ThemeToggle';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useOrientation } from '@/hooks/use-orientation';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -21,7 +24,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { LogOut, User, ExternalLink } from 'lucide-react';
+import { LogOut, User, ExternalLink, Menu, Save, Code2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { fileAPI } from '@/lib/api';
@@ -46,9 +49,12 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   const [showP5Dialog, setShowP5Dialog] = useState(false);
   const [p5FolderName, setP5FolderName] = useState('p5js');
   const [usage, setUsage] = useState<{ used: number; max: number }>({ used: 0, max: 250 * 1024 * 1024 });
+  const [showMobileFileTree, setShowMobileFileTree] = useState(false);
   const pendingFileRef = useRef<string | null>(null);
   const objectUrlRef = useRef<string | null>(null);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+  const orientation = useOrientation();
 
   useEffect(() => {
     const loadTree = async () => {
@@ -329,51 +335,127 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   console.log('FileManager - displayPath result:', displayPath);
   const isEditable = isTextMime(selectedMime);
 
+  // Handle file save for mobile editor
+  const handleMobileSave = () => {
+    if (selectedFile && isEditable) {
+      handleFileSave(currentContent);
+    }
+  };
+
+  // Determine layout classes based on mobile state and orientation
+  const getLayoutClasses = () => {
+    if (!isMobile) return "flex-1 flex overflow-hidden";
+    if (orientation === 'portrait') return "flex-1 flex overflow-hidden";
+    return "flex-1 flex overflow-hidden";
+  };
+
+  const getFileTreeClasses = () => {
+    if (!isMobile) return "w-80 min-w-80";
+    if (orientation === 'landscape') return "w-48 min-w-48";
+    return "hidden"; // Hidden on mobile portrait - shown in sheet
+  };
+
+  const getEditorClasses = () => {
+    if (!isMobile) return "flex-1 min-w-0";
+    if (orientation === 'landscape') return "flex-1 min-w-0"; // 3/4 width handled by file tree being smaller
+    return "flex-1 min-w-0"; // Full width on mobile portrait
+  };
+
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
-      <div className="h-12 flex items-center justify-between px-4 border-b border-border bg-muted/20">
-        {/* Left side - Editing link */}
-        <div className="flex-1 max-w-xs">
-          <span className="text-sm text-muted-foreground inline-flex items-center gap-1">
-            you are editing{' '}
-            <a
-              href={`https://kabkimd.nl/${username}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-primary hover:text-primary/80 transition-colors underline decoration-primary/60 hover:decoration-primary underline-offset-2 inline-flex items-center gap-1"
-            >
-              kabkimd.nl/{username}
-              <ExternalLink size={12} className="opacity-80" />
-            </a>
-          </span>
+      <div className="h-12 flex items-center justify-between px-2 md:px-4 border-b border-border bg-muted/20">
+        {/* Left side - Mobile menu + Editing link */}
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          {isMobile && orientation === 'portrait' && (
+            <Sheet open={showMobileFileTree} onOpenChange={setShowMobileFileTree}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="p-2">
+                  <Menu size={16} />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-80 p-0">
+                <FileTree
+                  nodes={fileSystem}
+                  usage={usage}
+                  onFileSelect={(path) => {
+                    handleFileSelect(path);
+                    setShowMobileFileTree(false);
+                  }}
+                  onCreateFile={handleCreateFile}
+                  onCreateFolder={handleCreateFolder}
+                  onRename={handleRename}
+                  onDelete={handleDelete}
+                  onUpload={handleUpload}
+                  onMove={handleMove}
+                  onDownload={handleDownload}
+                  onCreateP5Project={handleCreateP5Project}
+                  selectedFile={selectedFile}
+                />
+              </SheetContent>
+            </Sheet>
+          )}
+          
+          <div className="truncate">
+            {isMobile ? (
+              <a
+                href={`https://kabkimd.nl/${username}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors underline decoration-primary/60 hover:decoration-primary underline-offset-2 inline-flex items-center gap-1"
+              >
+                kabkimd.nl/{username}
+                <ExternalLink size={12} className="opacity-80" />
+              </a>
+            ) : (
+              <span className="text-sm text-muted-foreground inline-flex items-center gap-1">
+                you are editing{' '}
+                <a
+                  href={`https://kabkimd.nl/${username}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-primary hover:text-primary/80 transition-colors underline decoration-primary/60 hover:decoration-primary underline-offset-2 inline-flex items-center gap-1"
+                >
+                  kabkimd.nl/{username}
+                  <ExternalLink size={12} className="opacity-80" />
+                </a>
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Center - Scrolling text */}
-        <div className="flex-1 flex justify-center">
-          <ScrollingText />
-        </div>
+        {/* Center - Scrolling text (hidden on small mobile) */}
+        {!isMobile && (
+          <div className="flex-1 flex justify-center">
+            <ScrollingText />
+          </div>
+        )}
         
         {/* Right side - Controls */}
-        <div className="flex-1 flex justify-end gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
+          {isMobile && selectedFile && isEditable && (
+            <Button variant="outline" size="sm" onClick={handleMobileSave} className="p-2">
+              <Save size={14} />
+            </Button>
+          )}
           <ThemeToggle />
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant="outline" size="sm" className={isMobile ? "p-2" : ""}>
             <Link to="/profile">
-              <User size={14} className="mr-1" />
-              Profile
+              <User size={14} className={isMobile ? "" : "mr-1"} />
+              {!isMobile && "Profile"}
             </Link>
           </Button>
-          <Button variant="outline" size="sm" onClick={onLogout}>
-            <LogOut size={14} className="mr-1" />
-            Logout
+          <Button variant="outline" size="sm" onClick={onLogout} className={isMobile ? "p-2" : ""}>
+            <LogOut size={14} className={isMobile ? "" : "mr-1"} />
+            {!isMobile && "Logout"}
           </Button>
         </div>
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* File tree sidebar */}
-        <div className="w-80 min-w-80">
+      <div className={getLayoutClasses()}>
+        {/* File tree sidebar - hidden on mobile portrait */}
+        <div className={getFileTreeClasses()}>
           <FileTree
             nodes={fileSystem}
             usage={usage}
@@ -391,7 +473,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
         </div>
 
         {/* Editor/Preview area */}
-        <div className="flex-1 min-w-0">
+        <div className={getEditorClasses()}>
           {selectedFile ? (
             isEditable ? (
               <CodeEditor
@@ -400,6 +482,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
                 onSave={handleFileSave}
                 onContentChange={setCurrentContent}
                 onDirtyChange={setHasUnsavedChanges}
+                isMobile={isMobile}
               />
             ) : (
               <MediaPreview
@@ -409,8 +492,15 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
               />
             )
           ) : (
-            <div className="h-full flex items-center justify-center text-muted-foreground">
-              <p>Select a file to edit or preview</p>
+            <div className="h-full flex items-center justify-center text-muted-foreground p-4">
+              <div className="text-center">
+                <p className="text-sm md:text-base">Select a file to edit or preview</p>
+                {isMobile && orientation === 'portrait' && (
+                  <p className="text-xs text-muted-foreground/70 mt-2">
+                    Tap the menu button to browse files
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </div>
