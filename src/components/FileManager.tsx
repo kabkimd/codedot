@@ -14,6 +14,13 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { LogOut, User, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -36,6 +43,8 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
   const [currentContent, setCurrentContent] = useState<string>('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [showP5Dialog, setShowP5Dialog] = useState(false);
+  const [p5FolderName, setP5FolderName] = useState('p5js');
   const [usage, setUsage] = useState<{ used: number; max: number }>({ used: 0, max: 250 * 1024 * 1024 });
   const pendingFileRef = useRef<string | null>(null);
   const objectUrlRef = useRef<string | null>(null);
@@ -180,12 +189,16 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
       .catch((err) => console.error('Failed to create folder', err));
   };
 
-  const handleCreateP5Project = async () => {
+  const handleCreateP5Project = () => {
+    setP5FolderName('p5js');
+    setShowP5Dialog(true);
+  };
+
+  const createP5Project = async () => {
     const root = fileSystem[0]?.path;
     if (!root) return;
-    const name = prompt('Enter a folder name for your P5 project', 'p5js')?.trim();
-    if (!name) return;
-    const folderName = name;
+    const folderName = p5FolderName.trim();
+    if (!folderName) return;
     try {
       await fileAPI.createFolder(root, folderName);
       const base = `${root}/${folderName}`;
@@ -197,6 +210,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
       await fileAPI.saveFile(`${base}/sketch.js`, P5_SKETCH_JS);
       toast({ title: 'P5js project created', description: `${folderName} added` });
       refreshTree();
+      setShowP5Dialog(false);
     } catch (err) {
       console.error('Failed to create p5js project', err);
     }
@@ -419,6 +433,27 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <Dialog open={showP5Dialog} onOpenChange={setShowP5Dialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create P5.js Project</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              placeholder="Folder name"
+              value={p5FolderName}
+              onChange={(e) => setP5FolderName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && createP5Project()}
+            />
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowP5Dialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={createP5Project}>Create</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
