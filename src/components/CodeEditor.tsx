@@ -27,12 +27,13 @@ import { useToast } from '@/hooks/use-toast';
 const brightDarkTheme = EditorView.theme({
   '&': {
     color: '#f8f8f2',
-    backgroundColor: '#1e1e1e',
+    backgroundColor: 'hsl(240 5.9% 10%)', // Match sidebar background
   },
   '.cm-content': {
     padding: '10px',
     color: '#f8f8f2',
-    caretColor: '#f8f8f2'
+    caretColor: '#f8f8f2',
+    backgroundColor: 'hsl(240 5.9% 10%)' // Match sidebar background
   },
   '.cm-focused .cm-cursor': {
     borderLeftColor: '#f8f8f2'
@@ -41,10 +42,10 @@ const brightDarkTheme = EditorView.theme({
     backgroundColor: '#3a3a3a'
   },
   '.cm-activeLine': {
-    backgroundColor: '#2d2d2d'
+    backgroundColor: 'hsl(240 3.7% 15.9%)' // Use sidebar accent color for active line
   },
   '.cm-gutters': {
-    backgroundColor: '#252526',
+    backgroundColor: 'hsl(240 5.9% 10%)', // Match sidebar background
     color: '#858585',
     border: 'none'
   },
