@@ -2,18 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { FileIcon } from './FileIcon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from '@/components/ui/context-menu';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -32,7 +25,8 @@ import {
   Upload,
   Trash2,
   Edit3,
-  Download
+  Download,
+  MoreVertical
 } from 'lucide-react';
 
 export interface FileTreeNode {
@@ -74,17 +68,25 @@ export const FileTree = ({
   selectedFile
 }: FileTreeProps) => {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-  const [showCreateDialog, setShowCreateDialog] = useState<{
-    type: 'file' | 'folder';
-    parentPath: string;
-  } | null>(null);
+  const [draggedPath, setDraggedPath] = useState<string | null>(null);
+  const [dropTargetPath, setDropTargetPath] = useState<string | null>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState<{ type: 'file' | 'folder'; parentPath: string } | null>(null);
   const [newItemName, setNewItemName] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<{ path: string; name: string } | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; node: FileTreeNode } | null>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const uploadParentPathRef = useRef<string | null>(null);
-  const [draggedPath, setDraggedPath] = useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<{ path: string; name: string } | null>(null);
 
   const rootPath = nodes[0]?.path;
+
+  // Close context menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setContextMenu(null);
+    if (contextMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [contextMenu]);
 
   // Expand the root folder by default when the tree loads
   useEffect(() => {
@@ -128,129 +130,88 @@ export const FileTree = ({
     uploadParentPathRef.current = null;
   };
 
+  const handleContextMenu = (e: React.MouseEvent, node: FileTreeNode) => {
+    e.preventDefault();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      node
+    });
+  };
+
   const renderNode = (node: FileTreeNode, level = 0) => {
     const isExpanded = expandedNodes.has(node.path);
     const isSelected = selectedFile === node.path;
 
     return (
       <div key={node.path}>
-        <ContextMenu>
-          <ContextMenuTrigger>
-            <div
-              className={`flex items-center py-1 px-2 hover:bg-muted cursor-pointer select-none ${
-                isSelected ? 'bg-primary text-primary-foreground' : ''
-              }`}
-              style={{ paddingLeft: `${level * 16 + 8}px` }}
-              draggable
-              onDragStart={(e) => {
+        <div
+          className={`flex items-center py-1 px-2 hover:bg-muted cursor-pointer select-none relative group ${
+            isSelected ? 'bg-primary text-primary-foreground' : ''
+          }`}
+          style={{ paddingLeft: `${level * 16 + 8}px` }}
+          draggable
+          onDragStart={(e) => {
+            e.stopPropagation();
+            setDraggedPath(node.path);
+          }}
+          onDragEnd={() => setDraggedPath(null)}
+          onDragOver={(e) => {
+            if (draggedPath && node.isDirectory && node.path !== draggedPath) {
+              e.preventDefault();
+              setDropTargetPath(node.path);
+            }
+          }}
+          onDragLeave={() => setDropTargetPath(null)}
+          onDrop={(e) => {
+            if (draggedPath && node.isDirectory && node.path !== draggedPath) {
+              e.preventDefault();
+              onMove(draggedPath, node.path);
+              setDropTargetPath(null);
+            }
+          }}
+          onClick={() => {
+            if (node.isDirectory) {
+              toggleExpanded(node.path);
+            } else {
+              onFileSelect(node.path);
+            }
+          }}
+          onContextMenu={(e) => handleContextMenu(e, node)}
+        >
+          {node.isDirectory && (
+            <button
+              className="p-0 h-4 w-4 mr-1"
+              onClick={(e) => {
                 e.stopPropagation();
-                setDraggedPath(node.path);
-              }}
-              onDragEnd={() => setDraggedPath(null)}
-              onDragOver={(e) => {
-                if (draggedPath && node.isDirectory && node.path !== draggedPath) {
-                  e.preventDefault();
-                }
-              }}
-              onDrop={(e) => {
-                if (draggedPath && node.isDirectory && node.path !== draggedPath) {
-                  e.preventDefault();
-                  onMove(draggedPath, node.path);
-                }
-              }}
-              onClick={() => {
-                if (node.isDirectory) {
-                  toggleExpanded(node.path);
-                } else {
-                  onFileSelect(node.path);
-                }
+                toggleExpanded(node.path);
               }}
             >
-              {node.isDirectory && (
-                <button
-                  className="p-0 h-4 w-4 mr-1"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleExpanded(node.path);
-                  }}
-                >
-                  {isExpanded ? (
-                    <ChevronDown size={12} />
-                  ) : (
-                    <ChevronRight size={12} />
-                  )}
-                </button>
+              {isExpanded ? (
+                <ChevronDown size={12} />
+              ) : (
+                <ChevronRight size={12} />
               )}
-              <FileIcon 
-                name={node.name} 
-                isDirectory={node.isDirectory} 
-                size={14} 
-              />
-              <span className="ml-2 text-sm truncate">{node.name}</span>
-            </div>
-          </ContextMenuTrigger>
-          <ContextMenuContent>
-            {node.isDirectory && (
-              <>
-                <ContextMenuItem
-                  onClick={() => setShowCreateDialog({ type: 'file', parentPath: node.path })}
-                >
-                  <Plus size={14} className="mr-2" />
-                  New File
-                </ContextMenuItem>
-                <ContextMenuItem
-                  onClick={() => setShowCreateDialog({ type: 'folder', parentPath: node.path })}
-                >
-                  <FolderPlus size={14} className="mr-2" />
-                  New Folder
-                </ContextMenuItem>
-                <ContextMenuItem
-                  onClick={() => {
-                    uploadParentPathRef.current = node.path;
-                    uploadInputRef.current?.click();
-                  }}
-                >
-                  <Upload size={14} className="mr-2" />
-                  Upload Files
-                </ContextMenuItem>
-                <ContextMenuItem
-                  onClick={() => onDownload(node.path, node.name, true)}
-                >
-                  <Download size={14} className="mr-2" />
-                  Download Folder
-                </ContextMenuItem>
-              </>
-            )}
-            {node.path !== rootPath && (
-              <ContextMenuItem
-                onClick={() => {
-                  const newName = prompt('Enter new name', node.name);
-                  if (newName && newName.trim() && newName !== node.name) {
-                    onRename(node.path, newName.trim());
-                  }
-                }}
-              >
-                <Edit3 size={14} className="mr-2" />
-                Rename
-              </ContextMenuItem>
-            )}
-            {node.path !== rootPath && (
-              <ContextMenuItem
-                className="text-destructive"
-                onClick={() => setDeleteTarget({ path: node.path, name: node.name })}
-              >
-                <Trash2 size={14} className="mr-2" />
-                Delete
-              </ContextMenuItem>
-            )}
-            {!node.isDirectory && (
-              <ContextMenuItem onClick={() => onDownload(node.path, node.name, false)}>
-                <Download size={14} className="mr-2" />
-                Download File
-              </ContextMenuItem>
-            )}
-          </ContextMenuContent>
-        </ContextMenu>
+            </button>
+          )}
+          <FileIcon 
+            name={node.name} 
+            isDirectory={node.isDirectory} 
+            size={14} 
+          />
+          <span className="ml-2 text-sm truncate flex-1">{node.name}</span>
+          
+          {/* Small menu button that appears on hover */}
+          <button
+            className="opacity-0 group-hover:opacity-100 p-1 h-6 w-6 hover:bg-muted-foreground/20 rounded"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleContextMenu(e, node);
+            }}
+          >
+            <MoreVertical size={12} />
+          </button>
+        </div>
 
         {node.isDirectory && isExpanded && node.children && (
           <div>
@@ -283,6 +244,103 @@ export const FileTree = ({
         </div>
       </div>
 
+      {/* Simple context menu */}
+      {contextMenu && (
+        <div
+          className="fixed bg-background border border-border rounded-md shadow-md py-1 z-50"
+          style={{
+            left: `${contextMenu.x}px`,
+            top: `${contextMenu.y}px`,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {contextMenu.node.isDirectory && (
+            <>
+              <button
+                className="w-full text-left px-3 py-1 text-sm hover:bg-muted flex items-center"
+                onClick={() => {
+                  setShowCreateDialog({ type: 'file', parentPath: contextMenu.node.path });
+                  setContextMenu(null);
+                }}
+              >
+                <Plus size={14} className="mr-2" />
+                New File
+              </button>
+              <button
+                className="w-full text-left px-3 py-1 text-sm hover:bg-muted flex items-center"
+                onClick={() => {
+                  setShowCreateDialog({ type: 'folder', parentPath: contextMenu.node.path });
+                  setContextMenu(null);
+                }}
+              >
+                <FolderPlus size={14} className="mr-2" />
+                New Folder
+              </button>
+              <button
+                className="w-full text-left px-3 py-1 text-sm hover:bg-muted flex items-center"
+                onClick={() => {
+                  uploadParentPathRef.current = contextMenu.node.path;
+                  uploadInputRef.current?.click();
+                  setContextMenu(null);
+                }}
+              >
+                <Upload size={14} className="mr-2" />
+                Upload Files
+              </button>
+              <button
+                className="w-full text-left px-3 py-1 text-sm hover:bg-muted flex items-center"
+                onClick={() => {
+                  onDownload(contextMenu.node.path, contextMenu.node.name, true);
+                  setContextMenu(null);
+                }}
+              >
+                <Download size={14} className="mr-2" />
+                Download Folder
+              </button>
+            </>
+          )}
+          {contextMenu.node.path !== rootPath && (
+            <button
+              className="w-full text-left px-3 py-1 text-sm hover:bg-muted flex items-center"
+              onClick={() => {
+                const newName = prompt('Enter new name', contextMenu.node.name);
+                if (newName && newName.trim() && newName !== contextMenu.node.name) {
+                  onRename(contextMenu.node.path, newName.trim());
+                }
+                setContextMenu(null);
+              }}
+            >
+              <Edit3 size={14} className="mr-2" />
+              Rename
+            </button>
+          )}
+          {contextMenu.node.path !== rootPath && (
+            <button
+              className="w-full text-left px-3 py-1 text-sm hover:bg-muted flex items-center text-destructive"
+              onClick={() => {
+                setDeleteTarget({ path: contextMenu.node.path, name: contextMenu.node.name });
+                setContextMenu(null);
+              }}
+            >
+              <Trash2 size={14} className="mr-2" />
+              Delete
+            </button>
+          )}
+          {!contextMenu.node.isDirectory && (
+            <button
+              className="w-full text-left px-3 py-1 text-sm hover:bg-muted flex items-center"
+              onClick={() => {
+                onDownload(contextMenu.node.path, contextMenu.node.name, false);
+                setContextMenu(null);
+              }}
+            >
+              <Download size={14} className="mr-2" />
+              Download File
+            </button>
+          )}
+        </div>
+      )}
+
       <Dialog open={!!showCreateDialog} onOpenChange={() => setShowCreateDialog(null)}>
         <DialogContent>
           <DialogHeader>
@@ -306,6 +364,7 @@ export const FileTree = ({
           </div>
         </DialogContent>
       </Dialog>
+      
       <input
         type="file"
         ref={uploadInputRef}
@@ -313,6 +372,7 @@ export const FileTree = ({
         className="hidden"
         onChange={handleFileUpload}
       />
+      
       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
