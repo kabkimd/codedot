@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    allowedHosts: ["code.kabkimd.nl","kabkimd.nl"],
     proxy: {
       "/api": "http://localhost:3001"
     }
