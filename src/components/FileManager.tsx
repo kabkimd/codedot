@@ -19,6 +19,7 @@ import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { fileAPI } from '@/lib/api';
 import { detectMimeType, isTextMime } from '@/lib/utils';
+import { P5_INDEX_HTML, P5_STYLE_CSS, P5_SKETCH_JS } from '@/templates/p5js';
 
 interface FileManagerProps {
   username: string;
@@ -177,6 +178,26 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
         refreshTree();
       })
       .catch((err) => console.error('Failed to create folder', err));
+  };
+
+  const handleCreateP5Project = async () => {
+    const root = fileSystem[0]?.path;
+    if (!root) return;
+    const folderName = 'p5js';
+    try {
+      await fileAPI.createFolder(root, folderName);
+      const base = `${root}/${folderName}`;
+      await fileAPI.createFile(base, 'index.html');
+      await fileAPI.saveFile(`${base}/index.html`, P5_INDEX_HTML);
+      await fileAPI.createFile(base, 'style.css');
+      await fileAPI.saveFile(`${base}/style.css`, P5_STYLE_CSS);
+      await fileAPI.createFile(base, 'sketch.js');
+      await fileAPI.saveFile(`${base}/sketch.js`, P5_SKETCH_JS);
+      toast({ title: 'P5js project created', description: `${folderName} added` });
+      refreshTree();
+    } catch (err) {
+      console.error('Failed to create p5js project', err);
+    }
   };
 
   const handleRename = (path: string, newName: string) => {
@@ -348,6 +369,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
             onUpload={handleUpload}
             onMove={handleMove}
             onDownload={handleDownload}
+            onCreateP5Project={handleCreateP5Project}
             selectedFile={selectedFile}
           />
         </div>
