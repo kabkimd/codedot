@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs/promises';
+import bcrypt from 'bcrypt';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -63,8 +64,12 @@ async function saveUsers() {
 
 app.use(cors());
 app.use(express.json());
-function simpleAuth(username, password) {
-  return USERS.find(u => u.username === username.toLowerCase() && u.password === password);
+async function simpleAuth(username, password) {
+  const user = USERS.find(u => u.username === username.toLowerCase());
+  if (!user) return null;
+  
+  const isValid = await bcrypt.compare(password, user.password);
+  return isValid ? user : null;
 }
 
 function userDir(username) {
@@ -94,7 +99,7 @@ app.post('/api/auth/login', serverReadyMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Username and password required' });
     }
     
-    const user = simpleAuth(username, password);
+    const user = await simpleAuth(username, password);
     
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
