@@ -1,44 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
-// Lazy load language modules
-const getLanguageExtension = async (ext: string) => {
-  switch (ext) {
-    case 'js':
-    case 'jsx':
-    case 'ts':
-    case 'tsx':
-      const { javascript } = await import('@codemirror/lang-javascript');
-      return javascript();
-    case 'html':
-    case 'htm':
-      const { html } = await import('@codemirror/lang-html');
-      return html();
-    case 'css':
-      const { css } = await import('@codemirror/lang-css');
-      return css();
-    case 'json':
-      const { json } = await import('@codemirror/lang-json');
-      return json();
-    case 'md':
-      const { markdown } = await import('@codemirror/lang-markdown');
-      return markdown();
-    case 'xml':
-      const { xml } = await import('@codemirror/lang-xml');
-      return xml();
-    case 'yml':
-    case 'yaml':
-      const { yaml } = await import('@codemirror/lang-yaml');
-      return yaml();
-    case 'sql':
-      const { sql } = await import('@codemirror/lang-sql');
-      return sql();
-    case 'php':
-      const { php } = await import('@codemirror/lang-php');
-      return php();
-    default:
-      return null;
-  }
-};
+import { javascript } from '@codemirror/lang-javascript';
+import { html } from '@codemirror/lang-html';
+import { css } from '@codemirror/lang-css';
+import { json } from '@codemirror/lang-json';
+import { markdown } from '@codemirror/lang-markdown';
+import { xml } from '@codemirror/lang-xml';
+import { yaml } from '@codemirror/lang-yaml';
+import { sql } from '@codemirror/lang-sql';
+import { php } from '@codemirror/lang-php';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { EditorView, keymap, highlightActiveLine, lineNumbers } from '@codemirror/view';
 import { EditorState, Extension } from '@codemirror/state';

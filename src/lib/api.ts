@@ -1,4 +1,5 @@
 import { isLovableEnvironment } from './environment';
+import { supabaseAuthAPI, supabaseUserAPI, supabaseFileAPI } from './api-supabase';
 
 const API_BASE = '/api';
 
@@ -18,7 +19,11 @@ const expressAuthAPI = {
 // Environment-aware API
 export const authAPI = {
   login: async (username: string, password: string) => {
-    return expressAuthAPI.login(username, password);
+    if (isLovableEnvironment()) {
+      return supabaseAuthAPI.login(username, password);
+    } else {
+      return expressAuthAPI.login(username, password);
+    }
   }
 };
 
@@ -47,10 +52,18 @@ const expressUserAPI = {
 
 export const userAPI = {
   getCurrent: async () => {
-    return expressUserAPI.getCurrent();
+    if (isLovableEnvironment()) {
+      return supabaseUserAPI.getCurrent();
+    } else {
+      return expressUserAPI.getCurrent();
+    }
   },
   update: async (data: Record<string, unknown>) => {
-    return expressUserAPI.update(data);
+    if (isLovableEnvironment()) {
+      return supabaseUserAPI.update(data);
+    } else {
+      return expressUserAPI.update(data);
+    }
   }
 };
 
@@ -190,36 +203,80 @@ const expressFileAPI = {
 
 export const fileAPI = {
   getTree: async () => {
-    return expressFileAPI.getTree();
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.getTree();
+    } else {
+      return expressFileAPI.getTree();
+    }
   },
   getUsage: async () => {
-    return expressFileAPI.getUsage();
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.getUsage();
+    } else {
+      return expressFileAPI.getUsage();
+    }
   },
   getFile: async (path: string) => {
-    return expressFileAPI.getFile(path);
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.getFile(path);
+    } else {
+      return expressFileAPI.getFile(path);
+    }
   },
   saveFile: async (path: string, content: string) => {
-    return expressFileAPI.saveFile(path, content);
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.saveFile(path, content);
+    } else {
+      return expressFileAPI.saveFile(path, content);
+    }
   },
   createFile: async (parent: string, name: string) => {
-    return expressFileAPI.createFile(parent, name);
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.createFile(parent, name);
+    } else {
+      return expressFileAPI.createFile(parent, name);
+    }
   },
   createFolder: async (parent: string, name: string) => {
-    return expressFileAPI.createFolder(parent, name);
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.createFolder(parent, name);
+    } else {
+      return expressFileAPI.createFolder(parent, name);
+    }
   },
   deleteItem: async (path: string) => {
-    return expressFileAPI.deleteItem(path);
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.deleteItem(path);
+    } else {
+      return expressFileAPI.deleteItem(path);
+    }
   },
   renameItem: async (path: string, newName: string) => {
-    return expressFileAPI.renameItem(path, newName);
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.renameItem(path, newName);
+    } else {
+      return expressFileAPI.renameItem(path, newName);
+    }
   },
   uploadFiles: async (parent: string, files: FileList) => {
-    return expressFileAPI.uploadFiles(parent, files);
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.uploadFiles(parent, files);
+    } else {
+      return expressFileAPI.uploadFiles(parent, files);
+    }
   },
   moveItem: async (path: string, target: string) => {
-    return expressFileAPI.moveItem(path, target);
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.moveItem(path, target);
+    } else {
+      return expressFileAPI.moveItem(path, target);
+    }
   },
   downloadItem: async (path: string) => {
-    return expressFileAPI.downloadItem(path);
+    if (isLovableEnvironment()) {
+      return supabaseFileAPI.downloadItem(path);
+    } else {
+      return expressFileAPI.downloadItem(path);
+    }
   }
 };
