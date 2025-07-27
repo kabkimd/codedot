@@ -81,6 +81,19 @@ const brightHighlightStyle = HighlightStyle.define([
   { tag: t.invalid, color: '#f44747' },
 ]);
 
+// Boilerplate inserted when `!` is typed in an empty HTML file
+const htmlBoilerplate = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Document</title>
+</head>
+<body>
+
+</body>
+</html>`;
+
 interface CodeEditorProps {
   content: string;
   fileName: string;
@@ -895,11 +908,23 @@ export const CodeEditor = ({
           value={value}
           theme={editorTheme}
           onChange={(val) => {
-            setValue(val);
-            const dirty = val !== content;
+            let newVal = val;
+
+            // Insert boilerplate if user types `!` in an empty HTML file
+            const ext = fileName.split('.').pop()?.toLowerCase();
+            if (
+              (ext === 'html' || ext === 'htm') &&
+              value.trim() === '' &&
+              val.trim() === '!'
+            ) {
+              newVal = htmlBoilerplate;
+            }
+
+            setValue(newVal);
+            const dirty = newVal !== content;
             setIsDirty(dirty);
             onDirtyChange?.(dirty);
-            onContentChange?.(val);
+            onContentChange?.(newVal);
           }}
           extensions={extensions}
           readOnly={readOnly}
