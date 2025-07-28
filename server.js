@@ -3,10 +3,23 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs/promises';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
+import formData from 'form-data';
+import Mailgun from 'mailgun.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const SECRET = process.env.JWT_SECRET || 'secret-key';
+
+// Mailgun configuration
+const mailgun = new Mailgun(formData);
+const mg = mailgun.client({
+  username: 'api',
+  key: 'ea131543c94f96dea94ce2906788b3fb-03fd4b1a-984961b3'
+});
+
+// Password reset tokens storage (in production, use Redis or database)
+const passwordResetTokens = new Map();
 
 // Users data and initialization
 const USERS_PATH = path.resolve(process.cwd(), 'users.json');
@@ -443,6 +456,110 @@ app.get('/api/download', authMiddleware, async (req, res) => {
     }
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Password reset request endpoint
+app.post('/api/auth/forgot-password', serverReadyMiddleware, async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+    
+    // Find user by email
+    const user = USERS.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+    
+    if (!user) {
+      // Don't reveal if email exists or not for security
+      return res.json({ message: 'If the email exists, a reset link has been sent' });
+    }
+    
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = Date.now() + 3600000; // 1 hour from now
+    
+    // Store token (in production, store in database)
+    passwordResetTokens.set(resetToken, {
+      username: user.username,
+      expiry: resetTokenExpiry
+    });
+    
+    // Send email via Mailgun
+    const resetUrl = `${req.headers.origin || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
+    
+    try {
+      await mg.messages.create('a-remedy-for-the-lost-words.kabkimd.nl', {
+        from: 'Password Reset <a-remedy-for-the-lost-words@kabkimd.nl>',
+        to: [email],
+        subject: 'Password Reset Request',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>Password Reset Request</h2>
+            <p>Hello ${user.full_name || user.username},</p>
+            <p>You have requested to reset your password. Click the link below to create a new password:</p>
+            <a href="${resetUrl}" style="display: inline-block; background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 16px 0;">Reset Password</a>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you didn't request this password reset, please ignore this email.</p>
+            <p>Best regards,<br>A Remedy for the Lost Words</p>
+          </div>
+        `
+      });
+      
+      console.log(`✅ Password reset email sent to ${email}`);
+    } catch (emailError) {
+      console.error('❌ Failed to send email:', emailError);
+      return res.status(500).json({ error: 'Failed to send reset email' });
+    }
+    
+    res.json({ message: 'If the email exists, a reset link has been sent' });
+  } catch (error) {
+    console.error('❌ Forgot password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Password reset confirmation endpoint
+app.post('/api/auth/reset-password', serverReadyMiddleware, async (req, res) => {
+  try {
+    const { token, newPassword } = req.body || {};
+    
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: 'Token and new password are required' });
+    }
+    
+    // Validate token
+    const tokenData = passwordResetTokens.get(token);
+    if (!tokenData) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+    
+    if (Date.now() > tokenData.expiry) {
+      passwordResetTokens.delete(token);
+      return res.status(400).json({ error: 'Reset token has expired' });
+    }
+    
+    // Find user
+    const user = getUser(tokenData.username);
+    if (!user) {
+      passwordResetTokens.delete(token);
+      return res.status(400).json({ error: 'User not found' });
+    }
+    
+    // Hash new password and update user
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    
+    // Save users and cleanup token
+    await saveUsers();
+    passwordResetTokens.delete(token);
+    
+    console.log(`✅ Password reset successful for user: ${user.username}`);
+    res.json({ message: 'Password reset successful' });
+  } catch (error) {
+    console.error('❌ Reset password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
