@@ -366,7 +366,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
       {/* Header */}
       <div className="h-12 flex items-center justify-between px-2 md:px-4 border-b border-border bg-muted/20">
         {/* Left side - Mobile menu + Editing link */}
-        <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-shrink-0 w-80 min-w-0">
           {isMobile && orientation === 'portrait' && (
             <Sheet open={showMobileFileTree} onOpenChange={setShowMobileFileTree}>
               <SheetTrigger asChild>
@@ -426,9 +426,9 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
 
         {/* Center - Scrolling text (hidden on small mobile) */}
         {!isMobile && (
-          <div className="flex-1 flex justify-center relative">
+          <div className="flex-1 flex items-center overflow-hidden">
             {/* Border aligned with file tree separator - positioned at file tree width (320px = w-80) */}
-            <div className="absolute left-[-320px] top-0 bottom-0 w-px bg-border"></div>
+            {/* <div className="absolute left-[-320px] top-0 bottom-0 w-px bg-border"></div> */}
             <ScrollingText />
           </div>
         )}
