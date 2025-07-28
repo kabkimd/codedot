@@ -495,7 +495,7 @@ app.post('/api/auth/forgot-password', serverReadyMiddleware, async (req, res) =>
     
     try {
       await mg.messages.create(MAILGUN_DOMAIN, {
-        from: 'Password Reset <a-remedy-for-the-lost-words@kabkimd.nl>',
+        from: 'Leo <a-remedy-for-the-lost-words@kabkimd.nl>',
         to: [email],
         subject: 'Password Reset Request',
         html: `
