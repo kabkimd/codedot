@@ -12,10 +12,14 @@ const PORT = process.env.PORT || 3001;
 const SECRET = process.env.JWT_SECRET || 'secret-key';
 
 // Mailgun configuration
+const MAILGUN_API_KEY = 'ea131543c94f96dea94ce2906788b3fb-03fd4b1a-984961b3';
+const MAILGUN_DOMAIN = 'kabkimd.nl';
+
 const mailgun = new Mailgun(formData);
 const mg = mailgun.client({
   username: 'api',
-  key: 'ea131543c94f96dea94ce2906788b3fb-03fd4b1a-984961b3'
+  key: MAILGUN_API_KEY,
+  url: 'https://api.eu.mailgun.net' // Use EU endpoint
 });
 
 // Password reset tokens storage (in production, use Redis or database)
@@ -490,7 +494,7 @@ app.post('/api/auth/forgot-password', serverReadyMiddleware, async (req, res) =>
     const resetUrl = `${req.headers.origin || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
     
     try {
-      await mg.messages.create('a-remedy-for-the-lost-words.kabkimd.nl', {
+      await mg.messages.create(MAILGUN_DOMAIN, {
         from: 'Password Reset <a-remedy-for-the-lost-words@kabkimd.nl>',
         to: [email],
         subject: 'Password Reset Request',
