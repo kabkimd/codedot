@@ -427,7 +427,7 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
         {/* Center - Scrolling text (hidden on small mobile) */}
         {!isMobile && (
           <div className="flex-1 flex justify-center relative">
-            <div className="overflow-hidden" style={{ clipPath: 'polygon(320px 0%, 100% 0%, 100% 100%, 320px 100%)' }}>
+            <div className="absolute left-0 top-0 bottom-0 overflow-hidden" style={{ width: 'calc(100vw - 320px - 200px)' }}>
               <ScrollingText />
             </div>
           </div>
