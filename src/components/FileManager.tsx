@@ -426,10 +426,10 @@ export const FileManager = ({ username, onLogout }: FileManagerProps) => {
 
         {/* Center - Scrolling text (hidden on small mobile) */}
         {!isMobile && (
-          <div className="flex-1 flex justify-center relative">
-            {/* Border aligned with file tree separator - positioned at file tree width (320px = w-80) */}
-            <div className="absolute left-[-320px] top-0 bottom-0 w-px bg-border"></div>
-            <ScrollingText />
+          <div className="flex-1 flex justify-center relative overflow-hidden">
+            <div className="absolute left-0 top-0 bottom-0 w-80 overflow-hidden">
+              <ScrollingText />
+            </div>
           </div>
         )}
         
