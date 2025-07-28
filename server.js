@@ -13,7 +13,7 @@ const SECRET = process.env.JWT_SECRET || 'secret-key';
 
 // Mailgun configuration
 const MAILGUN_API_KEY = 'ea131543c94f96dea94ce2906788b3fb-03fd4b1a-984961b3';
-const MAILGUN_DOMAIN = 'kabkimd.nl';
+const MAILGUN_DOMAIN = 'a-remedy-for-the-lost-words.kabkimd.nl';
 
 const mailgun = new Mailgun(formData);
 const mg = mailgun.client({
