@@ -6,14 +6,16 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import formData from 'form-data';
 import Mailgun from 'mailgun.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const SECRET = process.env.JWT_SECRET || 'secret-key';
 
 // Mailgun configuration
-const MAILGUN_API_KEY = 'ea131543c94f96dea94ce2906788b3fb-03fd4b1a-984961b3';
-const MAILGUN_DOMAIN = 'a-remedy-for-the-lost-words.kabkimd.nl';
+const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
+const MAILGUN_DOMAIN  = process.env.MAILGUN_DOMAIN;
 
 const mailgun = new Mailgun(formData);
 const mg = mailgun.client({
@@ -26,7 +28,7 @@ const mg = mailgun.client({
 const passwordResetTokens = new Map();
 
 // Users data and initialization
-const USERS_PATH = path.resolve(process.cwd(), 'users.json');
+const USERS_PATH = path.resolve(process.cwd(), 'data', 'users.json');
 let USERS = [];
 let isServerReady = false;
 
@@ -90,7 +92,7 @@ async function simpleAuth(username, password) {
 }
 
 function userDir(username) {
-  return path.resolve(process.cwd(), 'users', username.toLowerCase());
+  return path.resolve(process.cwd(), '../kabkimd', username.toLowerCase());
 }
 
 const MAX_BYTES = 250 * 1024 * 1024;
