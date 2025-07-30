@@ -7,11 +7,14 @@ import crypto from 'crypto';
 import formData from 'form-data';
 import Mailgun from 'mailgun.js';
 import dotenv from 'dotenv';
+import multer from 'multer';
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const SECRET = process.env.JWT_SECRET || 'secret-key';
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Mailgun configuration
 const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
@@ -408,7 +411,7 @@ app.post('/api/move', authMiddleware, async (req, res) => {
   }
 });
 
-app.post('/api/upload', authMiddleware, async (req, res) => {
+app.post('/api/upload', authMiddleware, upload.array('files'), async (req, res) => {
   const BASE_DIR = userDir(req.user);
   const parent = req.body.parent;
   if (!parent) {
