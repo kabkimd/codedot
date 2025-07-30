@@ -45,7 +45,7 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
     <div className="min-h-screen flex items-center justify-center bg-background">
       <Card className="w-96 border">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">File Manager</CardTitle>
+          <CardTitle className="text-2xl"> &#60;CodeDot&#62;</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
