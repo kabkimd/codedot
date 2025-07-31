@@ -26,6 +26,7 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
       const data = await authAPI.login(username, password);
       setToken(data.token);
       onLogin(data.user.username);
+      document.cookie = `jwt=${data.token}; Path=/; Domain=kabkimd.nl; Secure; SameSite=None`;
       toast({
         title: 'Login successful',
         description: `Welcome back, ${data.user.username}!`,
