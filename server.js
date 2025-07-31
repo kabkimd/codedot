@@ -9,7 +9,20 @@ import Mailgun from 'mailgun.js';
 import dotenv from 'dotenv';
 import multer from 'multer';
 import jwt from 'jsonwebtoken';
+import fetch from 'node-fetch';
+import cookie from 'cookie';
+import mysql from 'mysql2/promise';
+
 dotenv.config();
+
+const db = await mysql.createPool({
+  host:     process.env.DB_HOST,
+  user:     process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10,
+});
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -87,13 +100,30 @@ async function saveUsers() {
 
 app.use(cors());
 app.use(express.json());
+
 async function simpleAuth(username, password) {
-  const user = USERS.find(u => u.username === username.toLowerCase());
-  if (!user) return null;
-  
-  const isValid = await bcrypt.compare(password, user.password);
-  return isValid ? user : null;
+  // pull the row from auth_user
+  const [rows] = await db.execute(
+    `SELECT password_hash, full_name, email, is_public
+       FROM auth_user
+      WHERE username = ?`,
+    [username.toLowerCase()]
+  );
+  if (rows.length === 0) return null;
+
+  const { password_hash, full_name, email, is_public } = rows[0];
+  const isValid = await bcrypt.compare(password, password_hash);
+  if (!isValid) return null;
+
+  // return an object shaped just like your old user record
+  return {
+    username:   username.toLowerCase(),
+    full_name,
+    email,
+    isPublic:   Boolean(is_public),
+  };
 }
+
 
 function userDir(username) {
   return path.resolve(process.cwd(), '../kabkimd', username.toLowerCase());

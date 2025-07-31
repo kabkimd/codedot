@@ -50,8 +50,4 @@ export default defineConfig(() => ({
       },
     },
   },
-  // you usually don't need this unless you're working around a dev prebundle quirk
-  // optimizeDeps: {
-  //   include: ['react', 'react-dom', 'react-router-dom']
-  // }
 }));
