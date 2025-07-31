@@ -8,6 +8,7 @@ import formData from 'form-data';
 import Mailgun from 'mailgun.js';
 import dotenv from 'dotenv';
 import multer from 'multer';
+import jwt from 'jsonwebtoken';
 dotenv.config();
 
 const app = express();
@@ -127,8 +128,8 @@ app.post('/api/auth/login', serverReadyMiddleware, async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     
-    // Simple token (just username for this demo)
-    const token = Buffer.from(username).toString('base64');
+    // const token = Buffer.from(username).toString('base64');
+    const token = jwt.sign({ username: user.username }, SECRET, { expiresIn: '1h' });
     res.json({ user: { username }, token });
   } catch (error) {
     console.error('❌ Login error:', error);
@@ -208,15 +209,18 @@ function authMiddleware(req, res, next) {
   if (!auth.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Auth required' });
   }
+
+  const token = auth.slice(7);
   try {
-    // Simple decode (just base64 username for this demo)
-    const token = auth.slice(7);
-    const username = Buffer.from(token, 'base64').toString();
-    if (!getUser(username)) {
-      throw new Error('Invalid user');
-    }
-    req.user = username;
+    const payload = jwt.verify(token, SECRET);
+    req.user = payload.username;
     next();
+    // const username = Buffer.from(token, 'base64').toString();
+    // if (!getUser(username)) {
+      // throw new Error('Invalid user');
+    // }
+    // req.user = username;
+    // next();
   } catch (e) {
     return res.status(401).json({ error: 'Invalid token' });
   }
@@ -505,13 +509,13 @@ app.post('/api/auth/forgot-password', serverReadyMiddleware, async (req, res) =>
         subject: 'Password Reset Request',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2>Password Reset Request</h2>
-            <p>Hello ${user.full_name || user.username},</p>
-            <p>You have requested to reset your password. Click the link below to create a new password:</p>
+            <h2>I/M/D CodeDot Password Reset Request</h2>
+            <p>Dearest ${user.full_name || user.username},</p>
+            <p>You must have lost your important word, hence your request to reset it. Click the link below to remediate for your lost word and create a new password:</p>
             <a href="${resetUrl}" style="display: inline-block; background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 16px 0;">Reset Password</a>
-            <p>This link will expire in 1 hour.</p>
-            <p>If you didn't request this password reset, please ignore this email.</p>
-            <p>Best regards,<br>A Remedy for the Lost Words</p>
+            <p>This link will be useless in 1 hour. Use it hastily.</p>
+            <p>If you didn't request this password reset, please ignore this email (and signal this to Leo).</p>
+            <p>bests,<br>Leo</p>
           </div>
         `
       });
@@ -571,6 +575,23 @@ app.post('/api/auth/reset-password', serverReadyMiddleware, async (req, res) => 
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+app.get('/api/auth/verify', (req, res) => {
+  const auth = req.headers.authorization || '';
+  if (!auth.startsWith('Bearer ')) return res.status(401).json({ error: 'Auth required' });
+
+  const token = auth.slice(7);
+  try {
+    const payload = jwt.verify(token, SECRET);
+    const user = getUser(payload.username);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    res.json({ username: user.username, full_name: user.full_name, email: user.email });
+  } catch (e) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
 
 
 // Initialize server and start listening
