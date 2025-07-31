@@ -9,8 +9,6 @@ import Mailgun from 'mailgun.js';
 import dotenv from 'dotenv';
 import multer from 'multer';
 import jwt from 'jsonwebtoken';
-import fetch from 'node-fetch';
-import cookie from 'cookie';
 import mysql from 'mysql2/promise';
 
 dotenv.config();
@@ -45,33 +43,32 @@ const mg = mailgun.client({
 const passwordResetTokens = new Map();
 
 // Users data and initialization
-const USERS_PATH = path.resolve(process.cwd(), 'data', 'users.json');
 let USERS = [];
 let isServerReady = false;
 
 async function initializeServer() {
   console.log('🚀 Starting server initialization...');
-  
+
   try {
-    // Load users from users.json
-    console.log('📖 Loading users.json...');
-    const usersData = await fs.readFile(USERS_PATH, 'utf8');
-    USERS = JSON.parse(usersData);
-    console.log(`✅ Loaded ${USERS.length} users from users.json`);
-    
+    // Load users from database
+    console.log('📖 Loading users from database...');
+    const [rows] = await db.query('SELECT username FROM auth_user');
+    USERS = rows.map((r) => ({ username: r.username }));
+    console.log(`✅ Loaded ${USERS.length} users from database`);
+
     // Ensure user directories exist
     console.log('📁 Checking user directories...');
-    for (const user of USERS) {
-      const userDirPath = userDir(user.username);
+    for (const { username } of USERS) {
+      const userDirPath = userDir(username);
       try {
         await fs.access(userDirPath);
-        console.log(`✅ User directory exists: ${user.username}`);
+        console.log(`✅ User directory exists: ${username}`);
       } catch (e) {
-        console.log(`📁 Creating user directory: ${user.username}`);
+        console.log(`📁 Creating user directory: ${username}`);
         await fs.mkdir(userDirPath, { recursive: true });
       }
     }
-    
+
     isServerReady = true;
     console.log('🎉 Server initialization complete!');
     return true;
@@ -90,12 +87,19 @@ function serverReadyMiddleware(req, res, next) {
   next();
 }
 
-function getUser(username) {
-  return USERS.find((u) => u.username === username.toLowerCase());
-}
-
-async function saveUsers() {
-  await fs.writeFile(USERS_PATH, JSON.stringify(USERS, null, 2));
+async function getUser(username) {
+  const [rows] = await db.execute(
+    `SELECT username, full_name, email, is_public FROM auth_user WHERE username = ?`,
+    [username.toLowerCase()]
+  );
+  if (rows.length === 0) return null;
+  const { username: uname, full_name, email, is_public } = rows[0];
+  return {
+    username: uname,
+    full_name,
+    email,
+    isPublic: Boolean(is_public),
+  };
 }
 
 app.use(cors());
@@ -168,7 +172,7 @@ app.post('/api/auth/login', serverReadyMiddleware, async (req, res) => {
 });
 
 app.get('/api/user', authMiddleware, async (req, res) => {
-  const user = getUser(req.user);
+  const user = await getUser(req.user);
   if (!user) {
     return res.status(404).json({ error: 'User not found' });
   }
@@ -177,7 +181,8 @@ app.get('/api/user', authMiddleware, async (req, res) => {
 });
 
 app.patch('/api/user', authMiddleware, async (req, res) => {
-  const user = getUser(req.user);
+  const currentUsername = req.user;
+  const user = await getUser(currentUsername);
   if (!user) {
     return res.status(404).json({ error: 'User not found' });
   }
@@ -190,27 +195,43 @@ app.patch('/api/user', authMiddleware, async (req, res) => {
     newPassword,
   } = req.body || {};
 
-  if (typeof full_name === 'string') user.full_name = full_name;
-  if (typeof email === 'string') user.email = email;
-  if (typeof isPublic === 'boolean') user.isPublic = isPublic;
+  const updates = [];
+  const params = [];
 
+  if (typeof full_name === 'string') {
+    updates.push('full_name = ?');
+    params.push(full_name);
+  }
+  if (typeof email === 'string') {
+    updates.push('email = ?');
+    params.push(email);
+  }
+  if (typeof isPublic === 'boolean') {
+    updates.push('is_public = ?');
+    params.push(isPublic ? 1 : 0);
+  }
+
+  let finalUsername = currentUsername;
   let newToken = null;
+
   if (newUsername) {
     const normalized = newUsername.toLowerCase();
-    if (normalized !== user.username) {
+    if (normalized !== currentUsername) {
       if (!/^[\w-]+$/.test(normalized)) {
-      return res.status(400).json({ error: 'Invalid username' });
+        return res.status(400).json({ error: 'Invalid username' });
       }
-      if (getUser(normalized)) {
+      if (await getUser(normalized)) {
         return res.status(400).json({ error: 'Username taken' });
       }
       try {
-        await fs.rename(userDir(user.username), userDir(normalized));
+        await fs.rename(userDir(currentUsername), userDir(normalized));
       } catch (err) {
         return res.status(500).json({ error: 'Failed to rename user directory' });
       }
-      user.username = normalized;
-      newToken = Buffer.from(normalized).toString('base64');
+      updates.push('username = ?');
+      params.push(normalized);
+      finalUsername = normalized;
+      newToken = jwt.sign({ username: normalized }, SECRET, { expiresIn: '1h' });
     }
   }
 
@@ -218,18 +239,36 @@ app.patch('/api/user', authMiddleware, async (req, res) => {
     if (!currentPassword) {
       return res.status(400).json({ error: 'Current password required' });
     }
-    if (currentPassword !== user.password) {
+    const [rows] = await db.execute(
+      'SELECT password_hash FROM auth_user WHERE username = ?',
+      [currentUsername],
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const isValid = await bcrypt.compare(currentPassword, rows[0].password_hash);
+    if (!isValid) {
       return res.status(400).json({ error: 'Current password incorrect' });
     }
-    user.password = newPassword;
+    const newHash = await bcrypt.hash(newPassword, 10);
+    updates.push('password_hash = ?');
+    params.push(newHash);
   }
 
-  await saveUsers();
+  if (updates.length > 0) {
+    params.push(currentUsername);
+    await db.execute(
+      `UPDATE auth_user SET ${updates.join(', ')} WHERE username = ?`,
+      params,
+    );
+  }
+
+  const updatedUser = await getUser(finalUsername);
   res.json({
-    username: user.username,
-    full_name: user.full_name,
-    email: user.email,
-    isPublic: user.isPublic,
+    username: updatedUser.username,
+    full_name: updatedUser.full_name,
+    email: updatedUser.email,
+    isPublic: updatedUser.isPublic,
     token: newToken,
   });
 });
@@ -512,7 +551,11 @@ app.post('/api/auth/forgot-password', serverReadyMiddleware, async (req, res) =>
     }
     
     // Find user by email
-    const user = USERS.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+    const [rows] = await db.execute(
+      'SELECT username, full_name FROM auth_user WHERE email = ?',
+      [email.toLowerCase()]
+    );
+    const user = rows[0];
     
     if (!user) {
       // Don't reveal if email exists or not for security
@@ -584,18 +627,20 @@ app.post('/api/auth/reset-password', serverReadyMiddleware, async (req, res) => 
     }
     
     // Find user
-    const user = getUser(tokenData.username);
+    const user = await getUser(tokenData.username);
     if (!user) {
       passwordResetTokens.delete(token);
       return res.status(400).json({ error: 'User not found' });
     }
-    
+
     // Hash new password and update user
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
-    
-    // Save users and cleanup token
-    await saveUsers();
+    await db.execute(
+      'UPDATE auth_user SET password_hash = ? WHERE username = ?',
+      [hashedPassword, user.username]
+    );
+
+    // Cleanup token
     passwordResetTokens.delete(token);
     
     console.log(`✅ Password reset successful for user: ${user.username}`);
@@ -606,14 +651,14 @@ app.post('/api/auth/reset-password', serverReadyMiddleware, async (req, res) => 
   }
 });
 
-app.get('/api/auth/verify', (req, res) => {
+app.get('/api/auth/verify', async (req, res) => {
   const auth = req.headers.authorization || '';
   if (!auth.startsWith('Bearer ')) return res.status(401).json({ error: 'Auth required' });
 
   const token = auth.slice(7);
   try {
     const payload = jwt.verify(token, SECRET);
-    const user = getUser(payload.username);
+    const user = await getUser(payload.username);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     res.json({ username: user.username, full_name: user.full_name, email: user.email });
