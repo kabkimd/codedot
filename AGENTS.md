@@ -91,7 +91,6 @@ src/
 │   └── use-toast.ts        # Toast notifications
 └── lib/
     ├── api.ts              # api routing
-    ├── environment.ts      # only for Lovable development to know this uses express
     └── utils.ts            # Utilities
 ```
 
