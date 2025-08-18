@@ -83,15 +83,19 @@ src/
 │   ├── SimpleContextMenu.tsx # Context menu for file tree
 │   └── ThemeToggle.tsx       # toggle dark/light theme
 ├── pages/
+│   ├── ForgotPassword.tsx  # Forgot psw form
 │   ├── Index.tsx           # Main page
-│   └── NotFound.tsx        # 404 page
+│   ├── NotFound.tsx        # 404 page
+│   ├── Profile.tsx         # Profile page
+│   └── ResetPassword.tsx   # Password reset page
+├── templates/
+│   └── p5js.ts             # p5js template
 ├── hooks/
 │   ├── use-mobile.tsx      # Mobile handling
 │   ├── use-orientation.tsx # Portrait/Landscape handling
 │   └── use-toast.ts        # Toast notifications
 └── lib/
     ├── api.ts              # api routing
-    ├── environment.ts      # only for Lovable development to know this uses express
     └── utils.ts            # Utilities
 ```
 
@@ -140,7 +144,7 @@ Body: { newName: string }
 Organize user files on your server:
 ```
 /var/www/tdl/
-├── admin/
+├── user0/
 ├── user1/
 ├── user2/
 └── ...
@@ -148,24 +152,24 @@ Organize user files on your server:
 
 ### Implementation Steps
 
-1. **Create API Server**
+**Create API Server**
    ```bash
    # Example with Node.js/Express
    npm init -y
    npm install express cors helmet bcrypt jsonwebtoken multer
    ```
 
-2. **User Management**
+**User Management**
    - Store user credentials in sql database
    - Hash passwords with bcrypt
    - Issue JWT tokens for authentication
 
-3. **File Operations**
+**File Operations**
    - Use Node.js `fs` module for file system operations
    - Validate paths to prevent directory traversal
    - Handle file uploads with multer
 
-4. **Nginx Configuration**
+**Nginx Configuration**
    ```nginx
    server {
        listen 80;
@@ -258,15 +262,3 @@ To build for production:
 ```bash
 npm run build
 ```
-
-## Features Implemented
-
-✅ User authentication
-✅ File tree browser with icons
-✅ Code editor with syntax highlighting
-✅ Media file preview
-✅ File CRUD operations (UI)
-✅ Context menus
-✅ File upload support
-✅ Minimal design system
-✅ Responsive layout

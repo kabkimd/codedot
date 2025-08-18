@@ -13,10 +13,13 @@ The source code in this repository is used at [code.kabkimd.nl](https://code.kab
 
 -- instructions below are incomplete! come back for it or mail l.scarin at kabk.nl --
 
-First of all, you need a server. You can rent a Virtual Private Server (VPS), buy one yourself or, if you are geeky, make one out of your old computer.
+**Get a server**
+Rent a virtual private server (VPS), buy one, or turn your old computer into one 🦗
 
+**Install fundamental tools**
+To build the app I used *nodejs* and a bunch of its libraries. To handle server's proxies and redirects I used *nginx*. For password reset forms through email I used *mailgun*. To handle databases I used *mysql*.
 
-**Clone GIT and run npm**
+**Clone project and install libraries**
 ```sh
 # Clone the repository using the project's Git URL.
 git clone github.com/kabkimd/codedot.git
@@ -32,6 +35,9 @@ npm run server
 
 # In another terminal, start the development server with auto-reloading and an instant preview.
 npm run dev
+
+# In alternative to the dev server, to build for production:
+npm run build
 ```
 
-Check agents.md for technical instructions
+Check agents.md for further technical instructions on implementation.
