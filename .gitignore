@@ -1,6 +1,8 @@
 # private data
 data
 */users.json
+data/users.json
+
 
 # Logs
 logs
