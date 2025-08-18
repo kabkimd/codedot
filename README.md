@@ -9,6 +9,8 @@ CodeDot is built to empower art students to a coding practice that is autonomous
 
 ## How can I reproduce this project? 
 
+-- instructions below are incomplete! come back for it or mail l.scarin at kabk.nl --
+
 First of all, you need a server. You can rent a Virtual Private Server (VPS), buy one yourself or, if you are geeky, make one out of your old computer.
 
 
