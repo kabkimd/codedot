@@ -7,7 +7,7 @@ In simple words, CodeDot allows students to host and edit their web-pages in a s
 CodeDot is built to empower art students to a coding practice that is autonomous, self-determined, sufficient, and caring. The source code in this repository is used at [code.kabkimd.nl](code.kabkimd.nl) by [I/M/D](https://www.kabk.nl/en/programmes/bachelor/interactive-media-design) students to edit their web-pages at [kabkimd.nl](kabkimd.nl)
 
 
-## How can I reproduce this project? --unfinished, come back for it or mail me at l.scarin@kabk.nl--
+## How can I reproduce this project? 
 
 First of all, you need a server. You can rent a Virtual Private Server (VPS), buy one yourself or, if you are geeky, make one out of your old computer.
 
