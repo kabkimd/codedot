@@ -1,4 +1,4 @@
-# <CodeDot>
+# < CodeDot >
 
 ⚪ CodeDot is a browser-based code editor for creative education.
 
